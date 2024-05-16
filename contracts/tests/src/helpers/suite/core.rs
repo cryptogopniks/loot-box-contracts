@@ -107,7 +107,8 @@ impl Project {
         }
 
         // instantiate goplend contracts
-        let platform_address = project.instantiate_platform(platform_code_id, &None, &None);
+        let platform_address =
+            project.instantiate_platform(platform_code_id, &None, &None, &None, &None, &None);
 
         project = Self {
             cw20_base_code_id,

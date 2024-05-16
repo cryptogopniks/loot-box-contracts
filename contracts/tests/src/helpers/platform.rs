@@ -5,7 +5,7 @@ use loot_box_base::{
     error::parse_err,
     platform::{
         msg::{ExecuteMsg, QueryMsg},
-        types::{Config, PriceItem, RawPriceItem},
+        types::Config,
     },
 };
 

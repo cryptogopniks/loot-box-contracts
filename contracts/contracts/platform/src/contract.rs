@@ -33,15 +33,30 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::UpdatePrices { data } => e::try_update_prices(deps, env, info, data),
+        ExecuteMsg::NoisReceive { callback } => e::try_nois_receive(deps, env, info, callback),
+
+        ExecuteMsg::RequestBoxList {} => e::try_request_box_list(deps, env, info),
 
         ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
 
         ExecuteMsg::UpdateConfig {
             admin,
             worker,
-            scheduler,
-        } => e::try_update_config(deps, env, info, admin, worker, scheduler),
+            proxy,
+            box_price,
+            price_and_weight_list,
+            box_list_length,
+        } => e::try_update_config(
+            deps,
+            env,
+            info,
+            admin,
+            worker,
+            proxy,
+            box_price,
+            price_and_weight_list,
+            box_list_length,
+        ),
     }
 }
 
@@ -51,19 +66,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
 
-        QueryMsg::QueryPrices {
-            collection_addresses,
-            start_after,
-            limit,
-        } => to_json_binary(&q::query_prices(
-            deps,
-            env,
-            collection_addresses,
-            start_after,
-            limit,
-        )?),
-
-        QueryMsg::QueryBlockTime {} => to_json_binary(&q::query_block_time(deps, env)?),
+        QueryMsg::QueryBoxList {} => to_json_binary(&q::query_box_list(deps, env)?),
     }
 }
 

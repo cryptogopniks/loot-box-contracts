@@ -1,26 +1,22 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Decimal, Uint128};
 
-use crate::assets::{Funds, Token, TokenUnverified};
-
+#[derive(Default)]
 #[cw_serde]
-pub struct RawPriceItem {
-    pub collection_address: String,
-    pub price: Funds<TokenUnverified>,
-}
-
-#[cw_serde]
-pub struct PriceItem {
-    pub address: Addr,
-    pub price: Funds<Token>,
-    pub price_update_date: u64,
+pub struct BoxList {
+    pub update_date: u64,
+    pub price_list: Vec<Uint128>,
 }
 
 #[cw_serde]
 pub struct Config {
     pub admin: Addr,
     pub worker: Option<Addr>,
-    pub scheduler: Option<Addr>,
+    pub proxy: Option<Addr>,
+
+    pub box_price: Uint128,
+    pub price_and_weight_list: Vec<(Uint128, Decimal)>,
+    pub box_list_length: u32,
 }
 
 #[cw_serde]

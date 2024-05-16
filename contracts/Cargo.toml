@@ -26,6 +26,7 @@ cw20 = "1.0.1"
 cw20-base = { version = "1.0.1", features = ["library"] }
 cw721 = "0.18.0"
 cw721-base = { version = "0.18.0", features = ["library"] }
+nois = "0.8.0"
 serde = "1.0.163"
 strum = "0.24.1"
 strum_macros = "0.24.3"

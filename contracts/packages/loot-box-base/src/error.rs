@@ -37,6 +37,18 @@ pub enum ContractError {
     #[error("Sender does not have access permissions!")]
     Unauthorized,
 
+    #[error("Incorrect box price list length!")]
+    IncorrectBoxPriceListLength,
+
+    #[error("Job ID is too long!")]
+    JobIdTooLong,
+
+    #[error("Job is in progress!")]
+    JobIsInProgress,
+
+    #[error("Received invalid randomness!")]
+    InvalidRandomness,
+
     #[error("Parameters are not provided!")]
     NoParameters,
 

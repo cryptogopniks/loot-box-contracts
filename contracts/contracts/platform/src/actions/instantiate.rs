@@ -1,12 +1,12 @@
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::{Addr, Decimal, DepsMut, Env, MessageInfo, Response, Uint128};
 use cw2::set_contract_version;
 
 use loot_box_base::{
     error::ContractError,
     platform::{
         msg::InstantiateMsg,
-        state::{CONFIG, CONTRACT_NAME},
-        types::Config,
+        state::{BOX_LIST, BOX_LIST_LENGTH, BOX_PRICE, CONFIG, CONTRACT_NAME, PROXY_ADDRESS},
+        types::{BoxList, Config},
     },
 };
 
@@ -31,13 +31,20 @@ pub fn try_instantiate(
                 .map(|x| deps.api.addr_validate(&x))
                 .transpose()
                 .unwrap_or(Some(sender.to_owned())),
-            scheduler: msg
-                .scheduler
+            proxy: msg
+                .proxy
                 .map(|x| deps.api.addr_validate(&x))
                 .transpose()
-                .unwrap_or(Some(sender.to_owned())),
+                .unwrap_or(Some(Addr::unchecked(PROXY_ADDRESS))),
+            box_price: msg.box_price.unwrap_or(Uint128::new(BOX_PRICE)),
+            price_and_weight_list: msg
+                .price_and_weight_list
+                .unwrap_or(vec![(Uint128::new(BOX_PRICE), Decimal::one())]),
+            box_list_length: msg.box_list_length.unwrap_or(BOX_LIST_LENGTH),
         },
     )?;
+
+    BOX_LIST.save(deps.storage, &BoxList::default())?;
 
     Ok(Response::new().add_attribute("action", "try_instantiate"))
 }
