@@ -21,5 +21,4 @@ cw2 = { workspace = true }
 serde = { workspace = true }
 nois = { workspace = true }
 loot-box-base = { workspace = true }
-getrandom = { workspace = true }
 semver = { workspace = true }

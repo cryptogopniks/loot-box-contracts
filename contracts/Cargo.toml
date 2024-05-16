@@ -5,6 +5,7 @@ members = [
     "tests"
 ]
 exclude = []
+resolver = "2"
 
 [profile.release]
 opt-level = 3
@@ -32,12 +33,14 @@ strum = "0.24.1"
 strum_macros = "0.24.3"
 thiserror = "1.0.40"
 anyhow = "1.0.71"
-cw-multi-test = "0.17.0"
-speculoos = "0.11.0"
-getrandom = { version = "0.2.9", features = ["js"] }
 semver = "1.0.20"
 
+# testing
+cw-multi-test = "0.20.0"
+speculoos = "0.11.0"
+
+# packages
 loot-box-base = { path = "./packages/loot-box-base" }
 
+# contracts
 platform = { path = "./contracts/platform" }
-
