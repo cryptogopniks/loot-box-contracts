@@ -60,6 +60,8 @@ async function main() {
     if (config.box_list_length !== 400) {
       await h.platform.cwUpdateConfig(
         {
+          proxy:
+            "stars1atcndw8yfrulzux6vg6wtw2c0u4y5wvy9423255h472f4x3gn8dq0v8j45",
           boxPrice: 100_000_000,
           priceAndWeightList: [
             [0, 0.3925],
