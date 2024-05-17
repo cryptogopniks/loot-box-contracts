@@ -1,11 +1,11 @@
-use cosmwasm_std::{Addr, Decimal, DepsMut, Env, MessageInfo, Response, Uint128};
+use cosmwasm_std::{Decimal, DepsMut, Env, MessageInfo, Response, Uint128};
 use cw2::set_contract_version;
 
 use loot_box_base::{
     error::ContractError,
     platform::{
         msg::InstantiateMsg,
-        state::{BOX_LIST, BOX_LIST_LENGTH, BOX_PRICE, CONFIG, CONTRACT_NAME, PROXY_ADDRESS},
+        state::{BOX_LIST, BOX_LIST_LENGTH, BOX_PRICE, CONFIG, CONTRACT_NAME},
         types::{BoxList, Config},
     },
 };
@@ -31,11 +31,6 @@ pub fn try_instantiate(
                 .map(|x| deps.api.addr_validate(&x))
                 .transpose()
                 .unwrap_or(Some(sender.to_owned())),
-            proxy: msg
-                .proxy
-                .map(|x| deps.api.addr_validate(&x))
-                .transpose()
-                .unwrap_or(Some(Addr::unchecked(PROXY_ADDRESS))),
             box_price: msg.box_price.unwrap_or(Uint128::new(BOX_PRICE)),
             price_and_weight_list: msg
                 .price_and_weight_list

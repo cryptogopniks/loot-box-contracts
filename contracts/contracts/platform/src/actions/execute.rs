@@ -1,79 +1,28 @@
-use cosmwasm_std::{
-    to_json_binary, Addr, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128,
-    WasmMsg,
-};
+use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128};
 
 use loot_box_base::{
     converters::u128_to_dec,
     error::ContractError,
     platform::{
-        state::{BOX_LIST, CONFIG, JOB_ID, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
+        state::{BOX_LIST, CONFIG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
         types::{BoxList, Config, TransferAdminState},
     },
     utils::{check_funds, unwrap_field, AuthType, FundsType},
 };
 
-pub fn try_nois_receive(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    callback: nois::NoisCallback,
-) -> Result<Response, ContractError> {
-    let block_time = env.block.time.seconds();
-    let sender_address = info.sender;
-    let Config { proxy, .. } = CONFIG.load(deps.storage)?;
-    let proxy = unwrap_field(proxy, "proxy")?;
-
-    check_authorization(
-        deps.as_ref(),
-        &sender_address,
-        AuthType::Specified {
-            allowlist: vec![Some(proxy)],
-        },
-    )?;
-
-    let nois::NoisCallback { randomness, .. } = callback;
-    let randomness: [u8; 32] = randomness
-        .to_array()
-        .map_err(|_| ContractError::InvalidRandomness)?;
-
-    BOX_LIST.update(deps.storage, |x| -> StdResult<BoxList> {
-        Ok(BoxList {
-            update_date: block_time,
-            price_list: nois::shuffle(randomness, x.price_list),
-        })
-    })?;
-
-    JOB_ID.remove(deps.storage);
-
-    Ok(Response::new().add_attribute("action", "try_nois_receive"))
-}
-
 pub fn try_request_box_list(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     info: MessageInfo,
 ) -> Result<Response, ContractError> {
     let sender_address = info.sender;
     let Config {
-        proxy,
         price_and_weight_list,
         box_list_length,
         ..
     } = CONFIG.load(deps.storage)?;
-    let proxy = unwrap_field(proxy, "proxy")?;
 
     check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
-
-    let job_id = format!("{}{}", sender_address.to_string(), env.block.time.seconds());
-    validate_job_id(&job_id)?;
-
-    // don't allow new request before the data will be received
-    if JOB_ID.may_load(deps.storage)?.is_some() {
-        Err(ContractError::JobIsInProgress)?;
-    }
-
-    JOB_ID.save(deps.storage, &job_id)?;
 
     // generate list of boxes with different prices according to weights
     let mut box_price_list: Vec<Uint128> = vec![];
@@ -96,16 +45,7 @@ pub fn try_request_box_list(
         Ok(x)
     })?;
 
-    // send msg to proxy
-    let msg = WasmMsg::Execute {
-        contract_addr: proxy.to_string(),
-        msg: to_json_binary(&nois::ProxyExecuteMsg::GetNextRandomness { job_id })?,
-        funds: info.funds,
-    };
-
-    Ok(Response::new()
-        .add_message(msg)
-        .add_attribute("action", "try_request_box_list"))
+    Ok(Response::new().add_attribute("action", "try_request_box_list"))
 }
 
 pub fn try_accept_admin_role(
@@ -151,7 +91,6 @@ pub fn try_update_config(
     info: MessageInfo,
     admin: Option<String>,
     worker: Option<String>,
-    proxy: Option<String>,
     box_price: Option<Uint128>,
     price_and_weight_list: Option<Vec<(Uint128, Decimal)>>,
     box_list_length: Option<u32>,
@@ -179,12 +118,6 @@ pub fn try_update_config(
     if let Some(x) = worker {
         check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
         config.worker = Some(deps.api.addr_validate(&x)?);
-        is_config_updated = true;
-    }
-
-    if let Some(x) = proxy {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-        config.proxy = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
@@ -281,12 +214,4 @@ fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdRes
     };
 
     Ok(())
-}
-
-fn validate_job_id(job_id: &str) -> Result<(), ContractError> {
-    if job_id.len() > nois::MAX_JOB_ID_LEN {
-        Err(ContractError::JobIdTooLong)
-    } else {
-        Ok(())
-    }
 }

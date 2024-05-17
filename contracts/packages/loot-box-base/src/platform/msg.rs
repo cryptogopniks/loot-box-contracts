@@ -1,7 +1,6 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 
 use cosmwasm_std::{Decimal, Uint128};
-use nois::NoisCallback;
 
 #[cw_serde]
 pub struct MigrateMsg {
@@ -11,7 +10,6 @@ pub struct MigrateMsg {
 #[cw_serde]
 pub struct InstantiateMsg {
     pub worker: Option<String>,
-    pub proxy: Option<String>,
 
     pub box_price: Option<Uint128>,
     pub price_and_weight_list: Option<Vec<(Uint128, Decimal)>>,
@@ -20,11 +18,6 @@ pub struct InstantiateMsg {
 
 #[cw_serde]
 pub enum ExecuteMsg {
-    // proxy
-    NoisReceive {
-        callback: NoisCallback,
-    },
-
     // any
     AcceptAdminRole {},
 
@@ -32,7 +25,6 @@ pub enum ExecuteMsg {
     UpdateConfig {
         admin: Option<String>,
         worker: Option<String>,
-        proxy: Option<String>,
 
         box_price: Option<Uint128>,
         price_and_weight_list: Option<Vec<(Uint128, Decimal)>>,

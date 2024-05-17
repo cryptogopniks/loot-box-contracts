@@ -14,7 +14,6 @@ pub struct BoxList {
 pub struct Config {
     pub admin: Addr,
     pub worker: Option<Addr>,
-    pub proxy: Option<Addr>,
 
     pub box_price: Uint128,
     pub price_and_weight_list: Vec<(Uint128, Decimal)>,

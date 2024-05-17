@@ -33,8 +33,6 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::NoisReceive { callback } => e::try_nois_receive(deps, env, info, callback),
-
         ExecuteMsg::RequestBoxList {} => e::try_request_box_list(deps, env, info),
 
         ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
@@ -42,7 +40,6 @@ pub fn execute(
         ExecuteMsg::UpdateConfig {
             admin,
             worker,
-            proxy,
             box_price,
             price_and_weight_list,
             box_list_length,
@@ -52,7 +49,6 @@ pub fn execute(
             info,
             admin,
             worker,
-            proxy,
             box_price,
             price_and_weight_list,
             box_list_length,

@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, StdResult, Uint128};
+use cosmwasm_std::{StdResult, Uint128};
 use cw_multi_test::{AppResponse, Executor};
 
 use loot_box_base::{
@@ -20,7 +20,6 @@ pub trait PlatformExtension {
         sender: ProjectAccount,
         admin: &Option<ProjectAccount>,
         worker: &Option<ProjectAccount>,
-        proxy: &Option<Addr>,
         box_price: &Option<u128>,
         price_and_weight_list: &Option<Vec<(u128, &str)>>,
         box_list_length: &Option<u32>,
@@ -52,7 +51,6 @@ impl PlatformExtension for Project {
         sender: ProjectAccount,
         admin: &Option<ProjectAccount>,
         worker: &Option<ProjectAccount>,
-        proxy: &Option<Addr>,
         box_price: &Option<u128>,
         price_and_weight_list: &Option<Vec<(u128, &str)>>,
         box_list_length: &Option<u32>,
@@ -64,7 +62,6 @@ impl PlatformExtension for Project {
                 &ExecuteMsg::UpdateConfig {
                     admin: admin.as_ref().map(|x| x.to_string()),
                     worker: worker.as_ref().map(|x| x.to_string()),
-                    proxy: proxy.as_ref().map(|x| x.to_string()),
                     box_price: box_price.as_ref().map(|x| Uint128::new(x.to_owned())),
                     price_and_weight_list: price_and_weight_list.as_ref().map(|x| {
                         x.to_owned()

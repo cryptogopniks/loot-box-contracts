@@ -28,7 +28,6 @@ pub trait WithCodes {
         &mut self,
         platform_code_id: u64,
         worker: &Option<ProjectAccount>,
-        proxy: &Option<Addr>,
         box_price: &Option<u128>,
         price_and_weight_list: &Option<Vec<(u128, &str)>>,
         box_list_length: &Option<u32>,
@@ -136,7 +135,6 @@ impl WithCodes for Project {
         &mut self,
         platform_code_id: u64,
         worker: &Option<ProjectAccount>,
-        proxy: &Option<Addr>,
         box_price: &Option<u128>,
         price_and_weight_list: &Option<Vec<(u128, &str)>>,
         box_list_length: &Option<u32>,
@@ -146,7 +144,6 @@ impl WithCodes for Project {
             "platform",
             &loot_box_base::platform::msg::InstantiateMsg {
                 worker: worker.as_ref().map(|x| x.to_string()),
-                proxy: proxy.as_ref().map(|x| x.to_string()),
                 box_price: box_price.as_ref().map(|x| Uint128::new(x.to_owned())),
                 price_and_weight_list: price_and_weight_list.as_ref().map(|x| {
                     x.to_owned()
