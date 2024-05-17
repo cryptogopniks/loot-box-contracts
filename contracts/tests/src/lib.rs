@@ -1,8 +1,8 @@
-// #[cfg(test)]
-// pub mod platform;
+#[cfg(test)]
+pub mod platform;
 
 pub mod helpers {
-    //  pub mod platform;
+    pub mod platform;
 
     pub mod suite {
         pub mod codes;
