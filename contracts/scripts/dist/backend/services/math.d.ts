@@ -1,0 +1,12 @@
+import { Addr, BiddedCollateralItem, Collateral, LiquidationBid } from "../../common/codegen/LendingPlatform.types";
+import { PriceItem } from "../../common/codegen/Oracle.types";
+export declare const YEAR_IN_SECONDS = 31536000;
+export declare function calcBidMinMultiplier(bidMinRate: number): number;
+export declare function calcBidMaxMultiplier(bidMinRate: number, discountMaxRate: number, discountMinRate: number): number;
+export declare function calcLtvMax(bidMinRate: number, discountMaxRate: number, discountMinRate: number): number;
+export declare function calcConditionalLtv(borrowApr: number, amountToBorrow: number, accumulatedLoan: number, loan: number, amountToDeposit: number, collateral: number, blockTime: number, loanCreationDate: number): number;
+export declare function calcDiscountedPrice(price: number, discount: number): number;
+export declare function matchCollateralsAndBids(collectionAndCollateralListByBorrower: [Addr, Collateral][], collectionAndBidList: [Addr, LiquidationBid][], priceList: PriceItem[]): BiddedCollateralItem[];
+export declare function calcLiquidationValue(collateral: number, discountRate: number, ltv: number, ltvMax: number): number;
+export declare function calcLiquidationLtv(biddedCollateral: BiddedCollateralItem[], borrowApr: number, accumulatedLoan: number, loan: number, collateral: number, blockTime: number, loanCreationDate: number): number;
+export declare function calcLiquidationSet(biddedCollateralList: BiddedCollateralItem[], maxLiquidationValue: number, ltvMax: number, borrowApr: number, accumulatedLoan: number, loan: number, collateral: number, blockTime: number, loanCreationDate: number): BiddedCollateralItem[];

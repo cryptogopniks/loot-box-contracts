@@ -4,43 +4,17 @@
 * and run the @cosmwasm/ts-codegen generate command to regenerate this file.
 */
 
-import { Coin } from "@cosmjs/amino";
-import { MsgExecuteContractEncodeObject } from "@cosmjs/cosmwasm-stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
-import { InstantiateMsg, ExecuteMsg, Uint128, TokenUnverified, RawPriceItem, FundsForTokenUnverified, CurrencyForTokenUnverified, QueryMsg, MigrateMsg, Uint64, Addr, Config, Token, ArrayOfPriceItem, PriceItem, FundsForToken, CurrencyForToken } from "./Oracle.types";
-export interface OracleMsg {
-  contractAddress: string;
-  sender: string;
-  acceptAdminRole: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  updateConfig: ({
-    admin,
-    scheduler,
-    worker
-  }: {
-    admin?: string;
-    scheduler?: string;
-    worker?: string;
-  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  updatePrices: ({
-    data
-  }: {
-    data: RawPriceItem[];
-  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-}
-export class OracleMsgComposer implements OracleMsg {
-  sender: string;
-  contractAddress: string;
-
-  constructor(sender: string, contractAddress: string) {
+export class OracleMsgComposer {
+  constructor(sender, contractAddress) {
     this.sender = sender;
     this.contractAddress = contractAddress;
     this.acceptAdminRole = this.acceptAdminRole.bind(this);
     this.updateConfig = this.updateConfig.bind(this);
     this.updatePrices = this.updatePrices.bind(this);
   }
-
-  acceptAdminRole = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+  acceptAdminRole = _funds => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
       value: MsgExecuteContract.fromPartial({
@@ -57,11 +31,7 @@ export class OracleMsgComposer implements OracleMsg {
     admin,
     scheduler,
     worker
-  }: {
-    admin?: string;
-    scheduler?: string;
-    worker?: string;
-  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+  }, _funds) => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
       value: MsgExecuteContract.fromPartial({
@@ -80,9 +50,7 @@ export class OracleMsgComposer implements OracleMsg {
   };
   updatePrices = ({
     data
-  }: {
-    data: RawPriceItem[];
-  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+  }, _funds) => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
       value: MsgExecuteContract.fromPartial({

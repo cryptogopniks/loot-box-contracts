@@ -1,11 +1,13 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Decimal, Uint128};
 
+// TODO: add box states: sold, open, open 50, open 250, etc.
+
 #[derive(Default)]
 #[cw_serde]
 pub struct BoxList {
     pub update_date: u64,
-    pub price_list: Vec<Uint128>,
+    pub price_list: Vec<Uint128>, // TODO: add box id
 }
 
 #[cw_serde]

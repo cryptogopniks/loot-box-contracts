@@ -7,7 +7,7 @@ pub const CONTRACT_NAME: &str = "cryptogopniks-loot-box";
 pub const PROXY_ADDRESS: &str = "stars1atcndw8yfrulzux6vg6wtw2c0u4y5wvy9423255h472f4x3gn8dq0v8j45";
 
 pub const BOX_PRICE: u128 = 100_000_000;
-pub const BOX_LIST_LENGTH: u32 = 1_000;
+pub const BOX_LIST_LENGTH: u32 = 100;
 
 pub const PAGINATION_MAX_LIMIT: u32 = 10_000;
 pub const PAGINATION_DEFAULT_LIMIT: u32 = 1_000;

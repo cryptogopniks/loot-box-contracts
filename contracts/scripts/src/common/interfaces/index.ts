@@ -2,10 +2,7 @@ import { Coin } from "@cosmjs/stargate";
 import { Timestamp } from "cosmjs-types/google/protobuf/timestamp";
 import { NetworkName, Wasm } from "../config";
 
-import {
-  CurrencyForTokenUnverified,
-  Decimal,
-} from "../codegen/LendingPlatform.types";
+import { Decimal } from "../codegen/Platform.types";
 
 interface QueryContractResponse {
   address: string;

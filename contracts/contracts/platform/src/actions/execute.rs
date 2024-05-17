@@ -90,6 +90,7 @@ pub fn try_request_box_list(
         Err(ContractError::IncorrectBoxPriceListLength)?;
     }
 
+    // TODO: use separate storage
     BOX_LIST.update(deps.storage, |mut x| -> StdResult<BoxList> {
         x.price_list = box_price_list;
         Ok(x)
