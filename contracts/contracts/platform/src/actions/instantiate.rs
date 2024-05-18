@@ -7,7 +7,7 @@ use loot_box_base::{
     platform::{
         msg::InstantiateMsg,
         state::{
-            BALANCE, BOX_PRICE_DEFAULT, BOX_STATS, CONFIG, CONTRACT_NAME, DENOM_DEFAULT,
+            BALANCE, BOX_PRICE_DEFAULT, BOX_STATS, CONFIG, CONTRACT_NAME, DENOM_DEFAULT, IS_LOCKED,
             NORMALIZED_DECIMAL, NORMALIZED_DECIMAL_DEFAULT, TRANSFER_ADMIN_STATE,
         },
         types::{Balance, BoxStats, Config, TransferAdminState, WeightInfo},
@@ -59,6 +59,7 @@ pub fn try_instantiate(
         },
     )?;
 
+    IS_LOCKED.save(deps.storage, &false)?;
     TRANSFER_ADMIN_STATE.save(
         deps.storage,
         &TransferAdminState {

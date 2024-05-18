@@ -38,10 +38,13 @@ pub enum ExecuteMsg {
     // admin
     Deposit {},
 
-    Withdraw {},
+    Withdraw {
+        amount: Uint128,
+    },
 
     // DepositNftList {},
     // WithdrawNftList {},
+    // UpdateNftPriceList {},
     //
     UpdateConfig {
         admin: Option<String>,

@@ -33,19 +33,19 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Buy {} => unimplemented!(),
+        ExecuteMsg::Buy {} => e::try_buy(deps, env, info),
 
-        ExecuteMsg::Open {} => unimplemented!(),
+        ExecuteMsg::Open {} => e::try_open(deps, env, info),
 
-        ExecuteMsg::Claim {} => unimplemented!(),
+        ExecuteMsg::Claim {} => e::try_claim(deps, env, info),
 
-        ExecuteMsg::Send { amount, recipient } => unimplemented!(),
+        ExecuteMsg::Send { amount, recipient } => e::try_send(deps, env, info, amount, recipient),
 
         ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
 
-        ExecuteMsg::Deposit {} => unimplemented!(),
+        ExecuteMsg::Deposit {} => e::try_deposit(deps, env, info),
 
-        ExecuteMsg::Withdraw {} => unimplemented!(),
+        ExecuteMsg::Withdraw { amount } => e::try_withdraw(deps, env, info, amount),
 
         ExecuteMsg::UpdateConfig {
             admin,
@@ -53,7 +53,16 @@ pub fn execute(
             box_price,
             denom,
             distribution,
-        } => unimplemented!(),
+        } => e::try_update_config(
+            deps,
+            env,
+            info,
+            admin,
+            worker,
+            box_price,
+            denom,
+            distribution,
+        ),
     }
 }
 

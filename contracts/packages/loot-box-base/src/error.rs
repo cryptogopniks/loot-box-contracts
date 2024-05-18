@@ -37,61 +37,17 @@ pub enum ContractError {
     #[error("Sender does not have access permissions!")]
     Unauthorized,
 
-    #[error("Incorrect box price list length!")]
-    IncorrectBoxPriceListLength,
-
-    #[error("Job ID is too long!")]
-    JobIdTooLong,
-
-    #[error("Job is in progress!")]
-    JobIsInProgress,
-
-    #[error("Received invalid randomness!")]
-    InvalidRandomness,
-
     #[error("Parameters are not provided!")]
     NoParameters,
 
     #[error("It's too late to accept admin role!")]
     TransferAdminDeadline,
 
-    // adapter-scheduler
-    #[error("Scheduler is executed too early!")]
-    EarlyExecution,
-
-    #[error("Low total available to borrow liquidity!")]
-    LowAvailableLiquidity,
-
-    #[error("Only {provided_amount:?} {denom:?} is provided while min collateral value is {min_amount:?}")]
-    LowCollateral {
-        provided_amount: u128,
-        min_amount: u128,
-        denom: String,
-    },
-
-    #[error("Bids on own collateral are not allowed!")]
-    OwnCollateralBids,
-
-    #[error("Discount is out of range!")]
-    DiscountIsOutOfRange,
-
-    #[error("Max LTV is exceeded!")]
-    ExceededLtv,
-
-    #[error("Max bid amount is exceeded!")]
-    ExceededBidAmount,
-
-    #[error("Collection {val:?} price data is outdated!")]
-    OutdatedPrice { val: String },
-
-    #[error("Collection {val:?} price data is not found!")]
-    PriceIsNotFound { val: String },
+    #[error("Not enough liquidity to claim rewards!")]
+    NotEnoughLiquidity,
 
     #[error("Currency can not be changed after adding liquidity!")]
     ChangingCurrency,
-
-    #[error("Multiple positions with same creation date are not allowed!")]
-    SameCreationDate,
 
     #[error("Address already exists!")]
     AddressExists,
@@ -102,32 +58,14 @@ pub enum ContractError {
     #[error("NFT already is added!")]
     NftDuplication,
 
-    #[error("Exceeded liquidation bid NFT max amount!")]
-    ExceededLiquidationBidNftMaxAmount,
-
-    #[error("Zeros in prices!")]
-    ZerosInPrices,
-
-    #[error("Zero trading volume!")]
-    ZeroTradingVolume,
-
     #[error("Zero amount to send!")]
     ZeroAmount,
 
-    #[error("Exceeded prices max amount!")]
-    ExceededPricesMaxAmount,
+    #[error("The user doesn't have boxes!")]
+    ZeroBoxAmount,
 
-    #[error("Empty raw price item vector!")]
-    EmptyRawPriceItemVector,
-
-    #[error("Empty price vector!")]
-    EmptyPriceVector,
-
-    #[error("Empty target list!")]
-    EmptyTargetList,
-
-    #[error("Collateral is not found!")]
-    CollateralIsNotFound,
+    #[error("The user doesn't have rewards!")]
+    ZeroRewardsAmount,
 
     #[error("Empty collection list!")]
     EmptyCollectionList,
@@ -144,9 +82,6 @@ pub enum ContractError {
     #[error("Collection balance is empty!")]
     CollectionBalanceIsEmpty,
 
-    #[error("Wrong proposal status!")]
-    WrongProposalStatus,
-
     #[error("Sum of weights is not equal one!")]
     WeightsAreUnbalanced,
 
@@ -161,6 +96,9 @@ pub enum ContractError {
 
     #[error("Wrong asset type!")]
     WrongAssetType,
+
+    #[error("Improper asset amount!")]
+    ImproperAssetAmount,
 
     #[error("Wrong message type!")]
     WrongMessageType,
