@@ -10,6 +10,21 @@ use crate::helpers::{
     suite::{core::Project, types::ProjectAccount},
 };
 
+// x0 + x1 + x2 + x3 + x4 = 1
+// 0*x0 + 50*x1 + 250*x2 + 500*x3 + 1000*x4 = 80
+
+// x0 + x1 + 0.2*x1 + 0.1*x1 + 0.05*x1 = 1
+// 0*x0 + 50*x1 + 50*x1 + 50*x1 + 50*x1 = 80
+
+// x0 + 1.35*x1 = 1
+// 200*x1 = 80
+
+// x0 = 0.4600
+// x1 = 0.4000
+// x2 = 0.0800
+// x3 = 0.0400
+// x4 = 0.0200
+
 fn parse_attr(res: &AppResponse, key: &str) -> String {
     res.events
         .last()
@@ -24,17 +39,18 @@ fn parse_attr(res: &AppResponse, key: &str) -> String {
 
 #[test]
 fn pick_number_default() -> StdResult<()> {
+    const BOX_PRICE: u128 = 100;
     const ROUNDS: u128 = 1000;
 
     let mut project = Project::new();
     project.reset_time();
 
     let price_and_weight_list = vec![
-        (0, "0.3925"),
-        (50, "0.45"),
-        (250, "0.09"),
-        (500, "0.045"),
-        (1000, "0.0225"),
+        (0, "0.46"),
+        (50, "0.40"),
+        (250, "0.08"),
+        (500, "0.04"),
+        (1000, "0.02"),
     ];
     let mut stats: Vec<u128> = vec![0; price_and_weight_list.len()];
     let mut price_list: Vec<u128> = vec![];
@@ -43,7 +59,7 @@ fn pick_number_default() -> StdResult<()> {
         ProjectAccount::Admin,
         &None,
         &None,
-        &Some(100),
+        &Some(BOX_PRICE),
         &Some(price_and_weight_list.clone()),
         &None,
     )?;
@@ -77,14 +93,24 @@ fn pick_number_default() -> StdResult<()> {
     // println!("{:#?}", stats);
     // println!("{:#?}", math_exp.to_string());
 
-    assert_that(&stats).is_equal_to(vec![
-        str_to_dec("0.397"),
-        str_to_dec("0.434"),
-        str_to_dec("0.102"),
-        str_to_dec("0.045"),
-        str_to_dec("0.022"),
-    ]);
-    assert_that(&math_exp.to_string().as_str()).is_equal_to("91.7");
+    assert_that(&stats).is_equal_to(
+        vec!["0.465", "0.382", "0.091", "0.043", "0.019"]
+            .into_iter()
+            .map(|x| str_to_dec(x))
+            .collect::<Vec<Decimal>>(),
+    );
+    assert_that(&math_exp.to_string().as_str()).is_equal_to("82.35");
+
+    // // cumulative stats
+    // let mut cumulative_price: i128 = 0;
+    // let mut cumulative_price_list: Vec<i128> = vec![];
+
+    // for price in price_list {
+    //     cumulative_price = cumulative_price + (BOX_PRICE as i128) - (price as i128);
+    //     cumulative_price_list.push(cumulative_price);
+    // }
+
+    // println!("{:#?}", cumulative_price_list);
 
     Ok(())
 }

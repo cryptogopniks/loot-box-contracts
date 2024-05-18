@@ -20,9 +20,11 @@ pub struct InstantiateMsg {
 pub enum ExecuteMsg {
     // Buy {},
 
-    // Open {},
+    // Open {amount},
 
     // Claim {},
+
+    // Send {amount, recipient}
     RequestBoxList {},
 
     PickNumber {},
