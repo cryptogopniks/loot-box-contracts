@@ -1,6 +1,8 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 
-use cosmwasm_std::{Decimal, Uint128};
+use cosmwasm_std::{Addr, Uint128};
+
+use crate::platform::types::{UserInfo, WeightInfo};
 
 #[cw_serde]
 pub struct MigrateMsg {
@@ -12,40 +14,42 @@ pub struct InstantiateMsg {
     pub worker: Option<String>,
 
     pub box_price: Option<Uint128>,
-    pub price_and_weight_list: Option<Vec<(Uint128, Decimal)>>,
-    pub box_list_length: Option<u32>,
+    pub denom: Option<String>,
+    pub distribution: Option<Vec<WeightInfo>>,
 }
 
 #[cw_serde]
 pub enum ExecuteMsg {
-    // Buy {},
+    // users
+    Buy {},
 
-    // Open {amount},
+    Open {},
 
-    // Claim {},
+    Claim {},
 
-    // Send {amount, recipient}
-    RequestBoxList {},
-
-    PickNumber {},
+    Send {
+        amount: Uint128,
+        recipient: String,
+    },
 
     // any
     AcceptAdminRole {},
 
-    // DepositReservePool {},
-
-    // WithdrawReservePool {},
-
-    // WithdrawMainPool {},
-
     // admin
+    Deposit {},
+
+    Withdraw {},
+
+    // DepositNftList {},
+    // WithdrawNftList {},
+    //
     UpdateConfig {
         admin: Option<String>,
         worker: Option<String>,
 
         box_price: Option<Uint128>,
-        price_and_weight_list: Option<Vec<(Uint128, Decimal)>>,
-        box_list_length: Option<u32>, // TODO: remove
+        denom: Option<String>,
+        distribution: Option<Vec<WeightInfo>>,
     },
 }
 
@@ -55,13 +59,24 @@ pub enum QueryMsg {
     #[returns(crate::platform::types::Config)]
     QueryConfig {},
 
-    // QueryStats {},
+    #[returns(crate::platform::types::BoxStats)]
+    QueryBoxStats {},
 
-    // QueryUser {},
+    #[returns(crate::platform::types::Balance)]
+    QueryBalance {},
 
-    // QueryUserList {},
+    #[returns(crate::platform::types::UserInfo)]
+    QueryUser { address: String },
 
-    // QueryBalances {},
-    #[returns(crate::platform::types::BoxList)]
-    QueryBoxList {},
+    #[returns(Vec<QueryUserListResponseItem>)]
+    QueryUserList {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
+}
+
+#[cw_serde]
+pub struct QueryUserListResponseItem {
+    pub address: Addr,
+    pub info: UserInfo,
 }

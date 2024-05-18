@@ -6,78 +6,76 @@ use loot_box_base::{
     error::ContractError,
     hash_generator::types::Hash,
     platform::{
-        state::{
-            BOX_LIST, CONFIG, NORMALIZED_DECIMAL, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT,
-        },
-        types::{BoxList, Config, TransferAdminState},
+        state::{CONFIG, NORMALIZED_DECIMAL, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
+        types::{Config, TransferAdminState},
     },
     utils::{check_funds, unwrap_field, AuthType, FundsType},
 };
 
-pub fn try_request_box_list(
-    deps: DepsMut,
-    _env: Env,
-    info: MessageInfo,
-) -> Result<Response, ContractError> {
-    let sender_address = info.sender;
-    let Config {
-        price_and_weight_list,
-        box_list_length,
-        ..
-    } = CONFIG.load(deps.storage)?;
+// pub fn try_request_box_list(
+//     deps: DepsMut,
+//     _env: Env,
+//     info: MessageInfo,
+// ) -> Result<Response, ContractError> {
+//     let sender_address = info.sender;
+//     let Config {
+//         price_and_weight_list,
+//         box_list_length,
+//         ..
+//     } = CONFIG.load(deps.storage)?;
 
-    check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+//     check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
 
-    // generate list of boxes with different prices according to weights
-    let mut box_price_list: Vec<Uint128> = vec![];
+//     // generate list of boxes with different prices according to weights
+//     let mut box_price_list: Vec<Uint128> = vec![];
 
-    for (price, weight) in price_and_weight_list {
-        let box_amount = (weight * u128_to_dec(box_list_length))
-            .to_uint_floor()
-            .u128() as usize;
-        let same_box_price_list = vec![price; box_amount];
-        box_price_list = [box_price_list, same_box_price_list].concat();
-    }
+//     for (price, weight) in price_and_weight_list {
+//         let box_amount = (weight * u128_to_dec(box_list_length))
+//             .to_uint_floor()
+//             .u128() as usize;
+//         let same_box_price_list = vec![price; box_amount];
+//         box_price_list = [box_price_list, same_box_price_list].concat();
+//     }
 
-    if box_price_list.len() != box_list_length as usize {
-        Err(ContractError::IncorrectBoxPriceListLength)?;
-    }
+//     if box_price_list.len() != box_list_length as usize {
+//         Err(ContractError::IncorrectBoxPriceListLength)?;
+//     }
 
-    // TODO: use separate storage
-    BOX_LIST.update(deps.storage, |mut x| -> StdResult<BoxList> {
-        x.price_list = box_price_list;
-        Ok(x)
-    })?;
+//     // TODO: use separate storage
+//     BOX_LIST.update(deps.storage, |mut x| -> StdResult<BoxList> {
+//         x.price_list = box_price_list;
+//         Ok(x)
+//     })?;
 
-    Ok(Response::new().add_attribute("action", "try_request_box_list"))
-}
+//     Ok(Response::new().add_attribute("action", "try_request_box_list"))
+// }
 
-pub fn try_pick_number(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-) -> Result<Response, ContractError> {
-    let block_time = env.block.time.nanos();
-    let sender_address = info.sender;
-    let normalized_decimal = NORMALIZED_DECIMAL.load(deps.storage)?;
-    let Config {
-        price_and_weight_list,
-        ..
-    } = CONFIG.load(deps.storage)?;
+// pub fn try_pick_number(
+//     deps: DepsMut,
+//     env: Env,
+//     info: MessageInfo,
+// ) -> Result<Response, ContractError> {
+//     let block_time = env.block.time.nanos();
+//     let sender_address = info.sender;
+//     let normalized_decimal = NORMALIZED_DECIMAL.load(deps.storage)?;
+//     let Config {
+//         price_and_weight_list,
+//         ..
+//     } = CONFIG.load(deps.storage)?;
 
-    let password = &format!("{}{}", normalized_decimal.to_string(), block_time);
-    let salt = &address_to_salt(&sender_address);
-    let hash_bytes = calc_hash_bytes(password, salt)?;
-    let random_weight = Hash::from(hash_bytes).to_norm_dec();
-    let price = pick_number(&price_and_weight_list, random_weight);
+//     let password = &format!("{}{}", normalized_decimal.to_string(), block_time);
+//     let salt = &address_to_salt(&sender_address);
+//     let hash_bytes = calc_hash_bytes(password, salt)?;
+//     let random_weight = Hash::from(hash_bytes).to_norm_dec();
+//     let price = pick_number(&price_and_weight_list, random_weight);
 
-    NORMALIZED_DECIMAL.save(deps.storage, &random_weight)?;
+//     NORMALIZED_DECIMAL.save(deps.storage, &random_weight)?;
 
-    Ok(Response::new()
-        .add_attribute("action", "try_pick_number")
-        .add_attribute("norm_dec", normalized_decimal.to_string())
-        .add_attribute("price", price.u128().to_string()))
-}
+//     Ok(Response::new()
+//         .add_attribute("action", "try_pick_number")
+//         .add_attribute("norm_dec", normalized_decimal.to_string())
+//         .add_attribute("price", price.u128().to_string()))
+// }
 
 pub fn try_accept_admin_role(
     deps: DepsMut,
@@ -116,88 +114,88 @@ pub fn try_accept_admin_role(
     Ok(Response::new().add_attribute("action", "try_accept_admin_role"))
 }
 
-pub fn try_update_config(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    admin: Option<String>,
-    worker: Option<String>,
-    box_price: Option<Uint128>,
-    price_and_weight_list: Option<Vec<(Uint128, Decimal)>>,
-    box_list_length: Option<u32>,
-) -> Result<Response, ContractError> {
-    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
-    let mut config = CONFIG.load(deps.storage)?;
-    let mut is_config_updated = false;
+// pub fn try_update_config(
+//     deps: DepsMut,
+//     env: Env,
+//     info: MessageInfo,
+//     admin: Option<String>,
+//     worker: Option<String>,
+//     box_price: Option<Uint128>,
+//     price_and_weight_list: Option<Vec<(Uint128, Decimal)>>,
+//     box_list_length: Option<u32>,
+// ) -> Result<Response, ContractError> {
+//     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+//     let mut config = CONFIG.load(deps.storage)?;
+//     let mut is_config_updated = false;
 
-    if let Some(x) = admin {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
-        let block_time = env.block.time.seconds();
-        let new_admin = &deps.api.addr_validate(&x)?;
+//     if let Some(x) = admin {
+//         check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+//         let block_time = env.block.time.seconds();
+//         let new_admin = &deps.api.addr_validate(&x)?;
 
-        TRANSFER_ADMIN_STATE.save(
-            deps.storage,
-            &TransferAdminState {
-                new_admin: new_admin.to_owned(),
-                deadline: block_time + TRANSFER_ADMIN_TIMEOUT,
-            },
-        )?;
+//         TRANSFER_ADMIN_STATE.save(
+//             deps.storage,
+//             &TransferAdminState {
+//                 new_admin: new_admin.to_owned(),
+//                 deadline: block_time + TRANSFER_ADMIN_TIMEOUT,
+//             },
+//         )?;
 
-        is_config_updated = true;
-    }
+//         is_config_updated = true;
+//     }
 
-    if let Some(x) = worker {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
-        config.worker = Some(deps.api.addr_validate(&x)?);
-        is_config_updated = true;
-    }
+//     if let Some(x) = worker {
+//         check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+//         config.worker = Some(deps.api.addr_validate(&x)?);
+//         is_config_updated = true;
+//     }
 
-    if let Some(x) = box_price {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-        config.box_price = x;
-        is_config_updated = true;
-    }
+//     if let Some(x) = box_price {
+//         check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+//         config.box_price = x;
+//         is_config_updated = true;
+//     }
 
-    if let Some(x) = price_and_weight_list {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-        // TODO: add weight checker
-        config.price_and_weight_list = x;
-        is_config_updated = true;
-    }
+//     if let Some(x) = price_and_weight_list {
+//         check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+//         // TODO: add weight checker
+//         config.price_and_weight_list = x;
+//         is_config_updated = true;
+//     }
 
-    if let Some(x) = box_list_length {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
-        config.box_list_length = x;
-        is_config_updated = true;
-    }
+//     if let Some(x) = box_list_length {
+//         check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+//         config.box_list_length = x;
+//         is_config_updated = true;
+//     }
 
-    // don't allow empty messages
-    if !is_config_updated {
-        Err(ContractError::NoParameters)?;
-    }
+//     // don't allow empty messages
+//     if !is_config_updated {
+//         Err(ContractError::NoParameters)?;
+//     }
 
-    CONFIG.save(deps.storage, &config)?;
+//     CONFIG.save(deps.storage, &config)?;
 
-    Ok(Response::new().add_attribute("action", "try_update_config"))
-}
+//     Ok(Response::new().add_attribute("action", "try_update_config"))
+// }
 
-fn pick_number(number_and_weight_list: &[(Uint128, Decimal)], random_weight: Decimal) -> Uint128 {
-    let mut accumulated_weight = Decimal::zero();
+// fn pick_number(number_and_weight_list: &[(Uint128, Decimal)], random_weight: Decimal) -> Uint128 {
+//     let mut accumulated_weight = Decimal::zero();
 
-    for (number, weight) in number_and_weight_list.to_owned() {
-        accumulated_weight += weight;
+//     for (number, weight) in number_and_weight_list.to_owned() {
+//         accumulated_weight += weight;
 
-        if random_weight < accumulated_weight {
-            return number;
-        }
-    }
+//         if random_weight < accumulated_weight {
+//             return number;
+//         }
+//     }
 
-    // if no number is picked return the last number
-    number_and_weight_list
-        .last()
-        .map(|(number, _)| number.to_owned())
-        .unwrap_or_default()
-}
+//     // if no number is picked return the last number
+//     number_and_weight_list
+//         .last()
+//         .map(|(number, _)| number.to_owned())
+//         .unwrap_or_default()
+// }
 
 fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdResult<()> {
     let Config { admin, worker, .. } = CONFIG.load(deps.storage)?;

@@ -33,28 +33,27 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::RequestBoxList {} => e::try_request_box_list(deps, env, info),
+        ExecuteMsg::Buy {} => unimplemented!(),
 
-        ExecuteMsg::PickNumber {} => e::try_pick_number(deps, env, info),
+        ExecuteMsg::Open {} => unimplemented!(),
+
+        ExecuteMsg::Claim {} => unimplemented!(),
+
+        ExecuteMsg::Send { amount, recipient } => unimplemented!(),
 
         ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
+
+        ExecuteMsg::Deposit {} => unimplemented!(),
+
+        ExecuteMsg::Withdraw {} => unimplemented!(),
 
         ExecuteMsg::UpdateConfig {
             admin,
             worker,
             box_price,
-            price_and_weight_list,
-            box_list_length,
-        } => e::try_update_config(
-            deps,
-            env,
-            info,
-            admin,
-            worker,
-            box_price,
-            price_and_weight_list,
-            box_list_length,
-        ),
+            denom,
+            distribution,
+        } => unimplemented!(),
     }
 }
 
@@ -64,7 +63,15 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
 
-        QueryMsg::QueryBoxList {} => to_json_binary(&q::query_box_list(deps, env)?),
+        QueryMsg::QueryBoxStats {} => to_json_binary(&q::query_box_stats(deps, env)?),
+
+        QueryMsg::QueryBalance {} => to_json_binary(&q::query_balance(deps, env)?),
+
+        QueryMsg::QueryUser { address } => to_json_binary(&q::query_user(deps, env, address)?),
+
+        QueryMsg::QueryUserList { start_after, limit } => {
+            to_json_binary(&q::query_user_list(deps, env, start_after, limit)?)
+        }
     }
 }
 
