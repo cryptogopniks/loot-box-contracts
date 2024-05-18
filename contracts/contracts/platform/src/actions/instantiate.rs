@@ -8,7 +8,7 @@ use loot_box_base::{
         msg::InstantiateMsg,
         state::{
             BALANCE, BOX_PRICE_DEFAULT, BOX_STATS, CONFIG, CONTRACT_NAME, DENOM_DEFAULT, IS_LOCKED,
-            NORMALIZED_DECIMAL, NORMALIZED_DECIMAL_DEFAULT, TRANSFER_ADMIN_STATE,
+            MEAN_WEIGHT, NORMALIZED_DECIMAL, TRANSFER_ADMIN_STATE,
         },
         types::{Balance, BoxStats, Config, TransferAdminState, WeightInfo},
     },
@@ -71,7 +71,7 @@ pub fn try_instantiate(
     BOX_STATS.save(deps.storage, &BoxStats::default())?;
     BALANCE.save(deps.storage, &Balance::default())?;
 
-    NORMALIZED_DECIMAL.save(deps.storage, &str_to_dec(NORMALIZED_DECIMAL_DEFAULT))?;
+    NORMALIZED_DECIMAL.save(deps.storage, &str_to_dec(MEAN_WEIGHT))?;
 
     Ok(Response::new().add_attribute("action", "try_instantiate"))
 }

@@ -49,14 +49,14 @@ pub enum ContractError {
     #[error("Currency can not be changed after adding liquidity!")]
     ChangingCurrency,
 
-    #[error("Address already exists!")]
-    AddressExists,
-
     #[error("NFT is not found!")]
     NftIsNotFound,
 
     #[error("NFT already is added!")]
     NftDuplication,
+
+    #[error("Improper NFT price!")]
+    ImproperNftPrice,
 
     #[error("Zero amount to send!")]
     ZeroAmount,
@@ -67,6 +67,9 @@ pub enum ContractError {
     #[error("The user doesn't have rewards!")]
     ZeroRewardsAmount,
 
+    #[error("A user can't open multiple boxes in single block!")]
+    MultipleBoxesPerBlock,
+
     #[error("Empty collection list!")]
     EmptyCollectionList,
 
@@ -75,12 +78,6 @@ pub enum ContractError {
 
     #[error("Collection is not found!")]
     CollectionIsNotFound,
-
-    #[error("Collection is not added!")]
-    CollectionIsNotAdded,
-
-    #[error("Collection balance is empty!")]
-    CollectionBalanceIsEmpty,
 
     #[error("Sum of weights is not equal one!")]
     WeightsAreUnbalanced,
@@ -114,9 +111,6 @@ pub enum ContractError {
 
     #[error("The contract is temporary locked to stop bad guys")]
     ContractIsLocked,
-
-    #[error("Denom already exists!")]
-    DenomExists,
 
     #[error("Parsing previous version error!")]
     ParsingPrevVersion,

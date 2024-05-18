@@ -47,6 +47,14 @@ pub fn execute(
 
         ExecuteMsg::Withdraw { amount } => e::try_withdraw(deps, env, info, amount),
 
+        ExecuteMsg::DepositNft { nft_info_list } => {
+            e::try_deposit_nft(deps, env, info, nft_info_list)
+        }
+
+        ExecuteMsg::WithdrawNft { nft_info_list } => unimplemented!(),
+
+        ExecuteMsg::UpdateNftPrice { nft_info_list } => unimplemented!(),
+
         ExecuteMsg::UpdateConfig {
             admin,
             worker,

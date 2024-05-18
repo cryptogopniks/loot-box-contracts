@@ -1,23 +1,24 @@
 use cosmwasm_std::{
-    coins, BankMsg, Decimal, DepsMut, Env, MessageInfo, Response, StdResult, Uint128,
+    coins, to_json_binary, Addr, BankMsg, Decimal, DepsMut, Env, MessageInfo, Response, StdResult,
+    Uint128, WasmMsg,
 };
 
 use hashing_helper::base::calc_hash_bytes;
 use loot_box_base::{
-    converters::address_to_salt,
+    converters::{address_to_salt, str_to_dec},
     error::ContractError,
     hash_generator::types::Hash,
     platform::{
         state::{
-            BALANCE, BOX_STATS, CONFIG, NORMALIZED_DECIMAL, TRANSFER_ADMIN_STATE,
+            BALANCE, BOX_STATS, CONFIG, MEAN_WEIGHT, NORMALIZED_DECIMAL, TRANSFER_ADMIN_STATE,
             TRANSFER_ADMIN_TIMEOUT, USERS,
         },
-        types::{Balance, BoxStats, Config, TransferAdminState, UserInfo, WeightInfo},
+        types::{Balance, BoxStats, Config, NftInfo, TransferAdminState, UserInfo, WeightInfo},
     },
     utils::{check_funds, AuthType, FundsType},
 };
 
-use crate::helpers::{check_authorization, check_lockout, pick_rewards};
+use crate::helpers::{check_authorization, check_collections_holder, check_lockout, pick_rewards};
 
 pub fn try_buy(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
@@ -79,6 +80,7 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
 
     let mut response = Response::new().add_attribute("action", "try_open");
     let block_time = env.block.time.nanos();
+    let block_height = env.block.height;
     let normalized_decimal = NORMALIZED_DECIMAL.load(deps.storage)?;
     let Config {
         denom,
@@ -89,6 +91,11 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
     let mut user = USERS
         .load(deps.storage, &sender_address)
         .unwrap_or_default();
+
+    // don't allow to open multiple boxes in single block
+    if user.opening_block == block_height {
+        Err(ContractError::MultipleBoxesPerBlock)?;
+    }
 
     // check box amount
     if user.boxes.is_zero() {
@@ -104,19 +111,52 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
 
     NORMALIZED_DECIMAL.save(deps.storage, &random_weight)?;
 
-    // send rewards if balance is enough else accumulate rewards
-    if rewards <= balance.pool {
-        balance.pool -= rewards;
+    if random_weight >= str_to_dec(MEAN_WEIGHT) {
+        // try to send nft
+        let same_price_nft = balance
+            .nft_pool
+            .iter()
+            .cloned()
+            .find(|x| x.price == rewards);
 
-        response = response.add_message(BankMsg::Send {
-            to_address: sender_address.to_string(),
-            amount: coins(rewards.u128(), denom),
-        });
+        if let Some(x) = same_price_nft {
+            balance.nft_pool.retain(|y| y != &x);
+
+            let cw721_msg = cw721::Cw721ExecuteMsg::TransferNft {
+                recipient: sender_address.to_string(),
+                token_id: x.token_id.to_string(),
+            };
+
+            let msg = WasmMsg::Execute {
+                contract_addr: x.collection.to_string(),
+                msg: to_json_binary(&cw721_msg)?,
+                funds: vec![],
+            };
+
+            response = response
+                .add_message(msg)
+                .add_attribute("nft", rewards.u128().to_string());
+        }
     } else {
-        balance.rewards += rewards;
-        user.rewards += rewards;
+        // send rewards if balance is enough else accumulate rewards
+        if rewards <= balance.pool {
+            balance.pool -= rewards;
+
+            response = response
+                .add_message(BankMsg::Send {
+                    to_address: sender_address.to_string(),
+                    amount: coins(rewards.u128(), denom),
+                })
+                .add_attribute("coins", rewards.u128().to_string());
+        } else {
+            balance.rewards += rewards;
+            user.rewards += rewards;
+
+            response = response.add_attribute("rewards", rewards.u128().to_string());
+        }
     }
 
+    user.opening_block = block_height;
     user.boxes -= Uint128::one();
     user.opened = user
         .opened
@@ -149,8 +189,6 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
     })?;
 
     BALANCE.save(deps.storage, &balance)?;
-
-    response = response.add_attribute("rewards", rewards.u128().to_string());
 
     Ok(response)
 }
@@ -338,6 +376,90 @@ pub fn try_withdraw(
     Ok(Response::new()
         .add_message(msg)
         .add_attribute("action", "try_withdraw"))
+}
+
+pub fn try_deposit_nft(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    nft_info_list: Vec<NftInfo<String>>,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+
+    let mut response = Response::new().add_attribute("action", "try_deposit_nft");
+    let Config { distribution, .. } = CONFIG.load(deps.storage)?;
+
+    if nft_info_list.is_empty() {
+        Err(ContractError::EmptyCollectionList)?;
+    }
+
+    // check collection addresses
+    let nft_info_list = nft_info_list
+        .into_iter()
+        .map(|x| {
+            Ok(NftInfo {
+                collection: deps.api.addr_validate(&x.collection)?,
+                token_id: x.token_id,
+                price: x.price,
+            })
+        })
+        .collect::<StdResult<Vec<NftInfo<Addr>>>>()?;
+
+    // check nft duplication
+    let mut collection_and_token_id_list: Vec<String> = nft_info_list
+        .iter()
+        .map(|x| format!("{}{}", x.collection, x.token_id))
+        .collect();
+
+    collection_and_token_id_list.sort_unstable();
+    collection_and_token_id_list.dedup();
+
+    if collection_and_token_id_list.len() != nft_info_list.len() {
+        Err(ContractError::NftDuplication)?;
+    }
+
+    // check nft prices
+    let rewards_list: Vec<Uint128> = distribution.into_iter().map(|x| x.box_rewards).collect();
+    if !nft_info_list
+        .iter()
+        .all(|x| rewards_list.contains(&x.price))
+    {
+        Err(ContractError::ImproperNftPrice)?;
+    }
+
+    // check if nfts are on user balance
+    check_collections_holder(deps.as_ref(), &sender_address, &nft_info_list)?;
+
+    // add transfer msgs
+    for NftInfo {
+        collection,
+        token_id,
+        ..
+    } in &nft_info_list
+    {
+        let cw721_msg = cw721::Cw721ExecuteMsg::TransferNft {
+            recipient: env.contract.address.to_string(),
+            token_id: token_id.to_string(),
+        };
+
+        let msg = WasmMsg::Execute {
+            contract_addr: collection.to_string(),
+            msg: to_json_binary(&cw721_msg)?,
+            funds: vec![],
+        };
+
+        response = response.add_message(msg);
+    }
+
+    BALANCE.update(deps.storage, |mut x| -> StdResult<Balance> {
+        x.nft_pool = [x.nft_pool, nft_info_list].concat();
+
+        Ok(x)
+    })?;
+
+    Ok(response)
 }
 
 // TODO: check roles

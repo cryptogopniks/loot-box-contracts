@@ -5,7 +5,7 @@ use crate::platform::types::{Balance, BoxStats, Config, TransferAdminState, User
 
 pub const CONTRACT_NAME: &str = "cryptogopniks-loot-box";
 
-pub const NORMALIZED_DECIMAL_DEFAULT: &str = "0.5";
+pub const MEAN_WEIGHT: &str = "0.5";
 pub const BOX_PRICE_DEFAULT: u128 = 100;
 pub const DENOM_DEFAULT: &str = "ustars";
 

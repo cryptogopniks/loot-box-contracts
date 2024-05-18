@@ -4,7 +4,7 @@ use loot_box_base::{
     error::ContractError,
     platform::{
         state::{CONFIG, IS_LOCKED},
-        types::{Config, WeightInfo},
+        types::{Config, NftInfo, WeightInfo},
     },
     utils::{unwrap_field, AuthType},
 };
@@ -105,51 +105,52 @@ pub fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> St
     Ok(())
 }
 
-// pub fn check_collections_holder(
-//     deps: Deps,
-//     holder: &Addr,
-//     collections: &Vec<CollectionInfo<String>>,
-// ) -> StdResult<()> {
-//     const MAX_LIMIT: u32 = 100;
-//     const ITER_LIMIT: u32 = 50;
+pub fn check_collections_holder<A: ToString>(
+    deps: Deps,
+    holder: &Addr,
+    collections: &Vec<NftInfo<A>>,
+) -> StdResult<()> {
+    const MAX_LIMIT: u32 = 100;
+    const ITER_LIMIT: u32 = 50;
 
-//     for CollectionInfo {
-//         collection_address,
-//         token_id_list,
-//     } in collections
-//     {
-//         let mut token_list: Vec<String> = vec![];
-//         let mut token_amount_sum: u32 = 0;
-//         let mut i: u32 = 0;
-//         let mut last_token: Option<String> = None;
+    for NftInfo {
+        collection,
+        token_id,
+        ..
+    } in collections
+    {
+        let mut token_list: Vec<String> = vec![];
+        let mut token_amount_sum: u32 = 0;
+        let mut i: u32 = 0;
+        let mut last_token: Option<String> = None;
 
-//         while (i == 0 || token_amount_sum == MAX_LIMIT) && i < ITER_LIMIT {
-//             i += 1;
+        while (i == 0 || token_amount_sum == MAX_LIMIT) && i < ITER_LIMIT {
+            i += 1;
 
-//             let query_tokens_msg = cw721::Cw721QueryMsg::Tokens {
-//                 owner: holder.to_string(),
-//                 start_after: last_token,
-//                 limit: Some(MAX_LIMIT),
-//             };
+            let query_tokens_msg = cw721::Cw721QueryMsg::Tokens {
+                owner: holder.to_string(),
+                start_after: last_token,
+                limit: Some(MAX_LIMIT),
+            };
 
-//             let cw721::TokensResponse { tokens } = deps
-//                 .querier
-//                 .query_wasm_smart(collection_address, &query_tokens_msg)?;
+            let cw721::TokensResponse { tokens } = deps
+                .querier
+                .query_wasm_smart(collection.to_string(), &query_tokens_msg)?;
 
-//             for token in tokens.clone() {
-//                 token_list.push(token);
-//             }
+            for token in tokens.clone() {
+                token_list.push(token);
+            }
 
-//             token_amount_sum = tokens.len() as u32;
-//             last_token = tokens.last().cloned();
-//         }
+            token_amount_sum = tokens.len() as u32;
+            last_token = tokens.last().cloned();
+        }
 
-//         let are_tokens_owned = token_id_list.iter().all(|x| token_list.contains(x));
+        let are_tokens_owned = token_list.contains(token_id);
 
-//         if !are_tokens_owned {
-//             Err(ContractError::NftIsNotFound)?;
-//         }
-//     }
+        if !are_tokens_owned {
+            Err(ContractError::NftIsNotFound)?;
+        }
+    }
 
-//     Ok(())
-// }
+    Ok(())
+}

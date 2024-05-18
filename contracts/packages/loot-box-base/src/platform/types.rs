@@ -34,16 +34,17 @@ pub struct OpeningInfo {
 #[cw_serde]
 pub struct Balance {
     pub pool: Uint128,
+    pub nft_pool: Vec<NftInfo<Addr>>,
     pub rewards: Uint128,
     pub deposited: Uint128,
 }
 
-// #[cw_serde]
-// pub struct NftPoolItem {
-//     pub collection: Addr,
-//     pub id: String,
-//     pub price: Uint128,
-// }
+#[cw_serde]
+pub struct NftInfo<A: ToString> {
+    pub collection: A,
+    pub token_id: String,
+    pub price: Uint128,
+}
 
 #[derive(Default)]
 #[cw_serde]
@@ -54,6 +55,7 @@ pub struct UserInfo {
     pub opened: Vec<OpeningInfo>,
     pub sent: Uint128,
     pub received: Uint128,
+    pub opening_block: u64,
 }
 
 #[cw_serde]

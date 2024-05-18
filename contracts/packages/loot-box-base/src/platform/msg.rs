@@ -2,7 +2,7 @@ use cosmwasm_schema::{cw_serde, QueryResponses};
 
 use cosmwasm_std::{Addr, Uint128};
 
-use crate::platform::types::{UserInfo, WeightInfo};
+use crate::platform::types::{NftInfo, UserInfo, WeightInfo};
 
 #[cw_serde]
 pub struct MigrateMsg {
@@ -42,10 +42,18 @@ pub enum ExecuteMsg {
         amount: Uint128,
     },
 
-    // DepositNftList {},
-    // WithdrawNftList {},
-    // UpdateNftPriceList {},
-    //
+    DepositNft {
+        nft_info_list: Vec<NftInfo<String>>,
+    },
+
+    WithdrawNft {
+        nft_info_list: Vec<NftInfo<String>>,
+    },
+
+    UpdateNftPrice {
+        nft_info_list: Vec<NftInfo<String>>,
+    },
+
     UpdateConfig {
         admin: Option<String>,
         worker: Option<String>,
