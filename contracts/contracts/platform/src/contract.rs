@@ -35,6 +35,8 @@ pub fn execute(
     match msg {
         ExecuteMsg::RequestBoxList {} => e::try_request_box_list(deps, env, info),
 
+        ExecuteMsg::PickNumber {} => e::try_pick_number(deps, env, info),
+
         ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
 
         ExecuteMsg::UpdateConfig {

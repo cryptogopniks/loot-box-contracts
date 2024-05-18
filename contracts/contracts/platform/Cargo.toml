@@ -20,4 +20,5 @@ cw-storage-plus = { workspace = true }
 cw2 = { workspace = true }
 serde = { workspace = true }
 loot-box-base = { workspace = true }
+hashing-helper = { workspace = true }
 semver = { workspace = true }

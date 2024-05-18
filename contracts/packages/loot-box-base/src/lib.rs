@@ -4,6 +4,10 @@ pub mod platform {
     pub mod types;
 }
 
+pub mod hash_generator {
+    pub mod types;
+}
+
 pub mod assets;
 pub mod constants;
 pub mod converters;

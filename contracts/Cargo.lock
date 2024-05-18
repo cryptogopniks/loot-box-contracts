@@ -704,6 +704,7 @@ dependencies = [
  "cw-storage-plus 1.2.0",
  "cw20",
  "cw20-base",
+ "hashing-helper",
  "serde",
  "thiserror",
 ]
@@ -825,6 +826,7 @@ dependencies = [
  "cosmwasm-std",
  "cw-storage-plus 1.2.0",
  "cw2 1.1.2",
+ "hashing-helper",
  "loot-box-base",
  "semver",
  "serde",
@@ -1123,6 +1125,7 @@ dependencies = [
  "cw20-base",
  "cw721 0.18.0",
  "cw721-base 0.18.0",
+ "hashing-helper",
  "loot-box-base",
  "platform",
  "serde",

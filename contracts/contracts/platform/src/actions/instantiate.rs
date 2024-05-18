@@ -2,10 +2,11 @@ use cosmwasm_std::{Decimal, DepsMut, Env, MessageInfo, Response, Uint128};
 use cw2::set_contract_version;
 
 use loot_box_base::{
+    converters::str_to_dec,
     error::ContractError,
     platform::{
         msg::InstantiateMsg,
-        state::{BOX_LIST, BOX_LIST_LENGTH, BOX_PRICE, CONFIG, CONTRACT_NAME},
+        state::{BOX_LIST, BOX_LIST_LENGTH, BOX_PRICE, CONFIG, CONTRACT_NAME, NORMALIZED_DECIMAL},
         types::{BoxList, Config},
     },
 };
@@ -40,6 +41,7 @@ pub fn try_instantiate(
     )?;
 
     BOX_LIST.save(deps.storage, &BoxList::default())?;
+    NORMALIZED_DECIMAL.save(deps.storage, &str_to_dec("0.5"))?;
 
     Ok(Response::new().add_attribute("action", "try_instantiate"))
 }

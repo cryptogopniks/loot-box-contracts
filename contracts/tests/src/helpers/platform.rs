@@ -13,6 +13,10 @@ use loot_box_base::{
 use crate::helpers::suite::{core::Project, types::ProjectAccount};
 
 pub trait PlatformExtension {
+    fn platform_try_request_box_list(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
+
+    fn platform_try_pick_number(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
+
     fn platform_try_accept_admin_role(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
 
     fn platform_try_update_config(
@@ -25,14 +29,36 @@ pub trait PlatformExtension {
         box_list_length: &Option<u32>,
     ) -> StdResult<AppResponse>;
 
-    fn platform_try_request_box_list(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
-
     fn platform_query_config(&self) -> StdResult<Config>;
 
     fn platform_query_box_list(&self) -> StdResult<BoxList>;
 }
 
 impl PlatformExtension for Project {
+    #[track_caller]
+    fn platform_try_request_box_list(&mut self, sender: ProjectAccount) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_platform_address(),
+                &ExecuteMsg::RequestBoxList {},
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
+    #[track_caller]
+    fn platform_try_pick_number(&mut self, sender: ProjectAccount) -> StdResult<AppResponse> {
+        self.app
+            .execute_contract(
+                sender.into(),
+                self.get_platform_address(),
+                &ExecuteMsg::PickNumber {},
+                &[],
+            )
+            .map_err(parse_err)
+    }
+
     #[track_caller]
     fn platform_try_accept_admin_role(&mut self, sender: ProjectAccount) -> StdResult<AppResponse> {
         self.app
@@ -71,18 +97,6 @@ impl PlatformExtension for Project {
                     }),
                     box_list_length: box_list_length.to_owned(),
                 },
-                &[],
-            )
-            .map_err(parse_err)
-    }
-
-    #[track_caller]
-    fn platform_try_request_box_list(&mut self, sender: ProjectAccount) -> StdResult<AppResponse> {
-        self.app
-            .execute_contract(
-                sender.into(),
-                self.get_platform_address(),
-                &ExecuteMsg::RequestBoxList {},
                 &[],
             )
             .map_err(parse_err)

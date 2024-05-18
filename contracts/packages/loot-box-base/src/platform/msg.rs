@@ -18,8 +18,23 @@ pub struct InstantiateMsg {
 
 #[cw_serde]
 pub enum ExecuteMsg {
+    // Buy {},
+
+    // Open {},
+
+    // Claim {},
+    RequestBoxList {},
+
+    PickNumber {},
+
     // any
     AcceptAdminRole {},
+
+    // DepositReservePool {},
+
+    // WithdrawReservePool {},
+
+    // WithdrawMainPool {},
 
     // admin
     UpdateConfig {
@@ -28,10 +43,8 @@ pub enum ExecuteMsg {
 
         box_price: Option<Uint128>,
         price_and_weight_list: Option<Vec<(Uint128, Decimal)>>,
-        box_list_length: Option<u32>,
+        box_list_length: Option<u32>, // TODO: remove
     },
-
-    RequestBoxList {},
 }
 
 #[cw_serde]
@@ -40,6 +53,13 @@ pub enum QueryMsg {
     #[returns(crate::platform::types::Config)]
     QueryConfig {},
 
+    // QueryStats {},
+
+    // QueryUser {},
+
+    // QueryUserList {},
+
+    // QueryBalances {},
     #[returns(crate::platform::types::BoxList)]
     QueryBoxList {},
 }

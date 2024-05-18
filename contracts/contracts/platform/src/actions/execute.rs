@@ -1,10 +1,14 @@
 use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128};
 
+use hashing_helper::base::calc_hash_bytes;
 use loot_box_base::{
-    converters::u128_to_dec,
+    converters::{address_to_salt, u128_to_dec},
     error::ContractError,
+    hash_generator::types::Hash,
     platform::{
-        state::{BOX_LIST, CONFIG, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT},
+        state::{
+            BOX_LIST, CONFIG, NORMALIZED_DECIMAL, TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT,
+        },
         types::{BoxList, Config, TransferAdminState},
     },
     utils::{check_funds, unwrap_field, AuthType, FundsType},
@@ -46,6 +50,33 @@ pub fn try_request_box_list(
     })?;
 
     Ok(Response::new().add_attribute("action", "try_request_box_list"))
+}
+
+pub fn try_pick_number(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+) -> Result<Response, ContractError> {
+    let block_time = env.block.time.nanos();
+    let sender_address = info.sender;
+    let normalized_decimal = NORMALIZED_DECIMAL.load(deps.storage)?;
+    let Config {
+        price_and_weight_list,
+        ..
+    } = CONFIG.load(deps.storage)?;
+
+    let password = &format!("{}{}", normalized_decimal.to_string(), block_time);
+    let salt = &address_to_salt(&sender_address);
+    let hash_bytes = calc_hash_bytes(password, salt)?;
+    let random_weight = Hash::from(hash_bytes).to_norm_dec();
+    let price = pick_number(&price_and_weight_list, random_weight);
+
+    NORMALIZED_DECIMAL.save(deps.storage, &random_weight)?;
+
+    Ok(Response::new()
+        .add_attribute("action", "try_pick_number")
+        .add_attribute("norm_dec", normalized_decimal.to_string())
+        .add_attribute("price", price.u128().to_string()))
 }
 
 pub fn try_accept_admin_role(
@@ -148,6 +179,24 @@ pub fn try_update_config(
     CONFIG.save(deps.storage, &config)?;
 
     Ok(Response::new().add_attribute("action", "try_update_config"))
+}
+
+fn pick_number(number_and_weight_list: &[(Uint128, Decimal)], random_weight: Decimal) -> Uint128 {
+    let mut accumulated_weight = Decimal::zero();
+
+    for (number, weight) in number_and_weight_list.to_owned() {
+        accumulated_weight += weight;
+
+        if random_weight < accumulated_weight {
+            return number;
+        }
+    }
+
+    // if no number is picked return the last number
+    number_and_weight_list
+        .last()
+        .map(|(number, _)| number.to_owned())
+        .unwrap_or_default()
 }
 
 fn check_authorization(deps: Deps, sender: &Addr, auth_type: AuthType) -> StdResult<()> {

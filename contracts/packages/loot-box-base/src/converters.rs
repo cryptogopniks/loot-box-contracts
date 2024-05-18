@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
-use cosmwasm_std::{Decimal, Decimal256, StdError, StdResult, Uint128, Uint256};
+use cosmwasm_std::{Addr, Decimal, Decimal256, StdError, StdResult, Uint128, Uint256};
+use hashing_helper::base::ENC_KEY_LEN;
 
 pub fn str_to_dec(s: &str) -> Decimal {
     Decimal::from_str(s).unwrap()
@@ -64,6 +65,13 @@ pub fn u128_vec_to_uint128_vec(u128_vec: &[u128]) -> Vec<Uint128> {
         .collect::<Vec<Uint128>>()
 }
 
+/// Converts u8 vector to [u8; ENC_KEY_LEN]
+pub fn u8_vec_to_hash_bytes(v: &Vec<u8>) -> StdResult<[u8; ENC_KEY_LEN]> {
+    TryInto::try_into(v.to_owned()).map_err(|_| StdError::GenericErr {
+        msg: format!("Vector length is {} but expected {}", v.len(), ENC_KEY_LEN),
+    })
+}
+
 /// Converts any String to u8 vector
 pub fn str_to_u8_vec(s: &str) -> Vec<u8> {
     s.chars().map(|c| c as u8).collect()
@@ -80,4 +88,23 @@ pub fn utf8_vec_to_str(v: &[u8]) -> StdResult<String> {
         Ok(x) => Ok(x),
         Err(e) => Err(StdError::GenericErr { msg: e.to_string() }),
     }
+}
+
+/// Converts [u8; ENC_KEY_LEN] to Decimal in range 0..1
+pub fn hash_bytes_to_norm_dec(hash: &[u8; 32]) -> Decimal {
+    let mut hash_value: u128 = 0;
+
+    for &byte in hash.iter().rev() {
+        hash_value = (hash_value << 8) | (byte as u128);
+    }
+
+    dec256_to_dec(Decimal256::from_ratio(
+        Uint128::from(hash_value),
+        Uint128::from(u128::MAX),
+    ))
+}
+
+pub fn address_to_salt(address: &Addr) -> String {
+    // Salt length must be >= 12
+    address.to_string().repeat(2)
 }

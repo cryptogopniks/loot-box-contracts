@@ -31,5 +31,6 @@ cw-multi-test = { workspace = true }
 speculoos = { workspace = true }
 
 loot-box-base = { workspace = true }
+hashing-helper = { workspace = true }
 
 platform = { workspace = true }
