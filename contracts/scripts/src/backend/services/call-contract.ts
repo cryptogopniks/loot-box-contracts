@@ -56,47 +56,6 @@ async function main() {
 
     // update config
     const config = await platfrorm.cwQueryConfig();
-
-    if (config.box_list_length !== 400) {
-      await h.platform.cwUpdateConfig(
-        {
-          proxy:
-            "stars1atcndw8yfrulzux6vg6wtw2c0u4y5wvy9423255h472f4x3gn8dq0v8j45",
-          boxPrice: 100_000_000,
-          priceAndWeightList: [
-            [0, 0.3925],
-            [50, 0.45],
-            [250, 0.09],
-            [500, 0.045],
-            [1000, 0.0225],
-          ],
-          boxListLength: 400,
-        },
-        gasPrice
-      );
-    }
-
-    // request box list
-    const { update_date: updateDate } = await platfrorm.cwQueryBoxList();
-    await h.platform.cwRequestBoxList(
-      1_000,
-      { native: { denom: DENOM } },
-      gasPrice
-    );
-
-    // check results
-    while (true) {
-      const { update_date: updateDateCurrent, price_list: priceList } =
-        await platfrorm.cwQueryBoxList();
-      l({ updateDate: updateDateCurrent });
-
-      if (updateDateCurrent !== updateDate) {
-        l(priceList);
-        break;
-      }
-
-      await wait(5_000);
-    }
   } catch (error) {
     l(error);
   }
