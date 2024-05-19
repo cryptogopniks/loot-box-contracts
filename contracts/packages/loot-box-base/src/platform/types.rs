@@ -1,23 +1,61 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Decimal, Uint128};
 
-// TODO: add box states: sold, open, open 50, open 250, etc.
-
-#[derive(Default)]
 #[cw_serde]
-pub struct BoxList {
-    pub update_date: u64,
-    pub price_list: Vec<Uint128>, // TODO: add box id
+pub struct Config {
+    pub admin: Addr,          // contract maintainer
+    pub worker: Option<Addr>, // app customer
+
+    pub box_price: Uint128,
+    pub denom: String,
+    pub distribution: Vec<WeightInfo>,
 }
 
 #[cw_serde]
-pub struct Config {
-    pub admin: Addr,
-    pub worker: Option<Addr>,
+pub struct WeightInfo {
+    pub box_rewards: Uint128,
+    pub weight: Decimal,
+}
 
-    pub box_price: Uint128,
-    pub price_and_weight_list: Vec<(Uint128, Decimal)>,
-    pub box_list_length: u32,
+#[derive(Default)]
+#[cw_serde]
+pub struct BoxStats {
+    pub sold: Uint128,
+    pub opened: Vec<OpeningInfo>,
+}
+
+#[cw_serde]
+pub struct OpeningInfo {
+    pub box_rewards: Uint128,
+    pub opened: Uint128,
+}
+
+#[derive(Default)]
+#[cw_serde]
+pub struct Balance {
+    pub pool: Uint128,
+    pub nft_pool: Vec<NftInfo<Addr>>,
+    pub rewards: Uint128,
+    pub deposited: Uint128,
+}
+
+#[cw_serde]
+pub struct NftInfo<A: ToString> {
+    pub collection: A,
+    pub token_id: String,
+    pub price: Uint128,
+}
+
+#[derive(Default)]
+#[cw_serde]
+pub struct UserInfo {
+    pub boxes: Uint128,
+    pub rewards: Uint128,
+    pub bought: Uint128,
+    pub opened: Vec<OpeningInfo>,
+    pub sent: Uint128,
+    pub received: Uint128,
+    pub opening_block: u64,
 }
 
 #[cw_serde]

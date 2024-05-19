@@ -7,10 +7,8 @@ export type NetworkName = "STARGAZE";
 export type Wasm = "platform.wasm";
 
 export const ADDRESS = {
-  ADMIN: "kujira1f37v0rdvrred27tlqqcpkrqpzfv6ddr2c3t8y8",
-  WORKER: "kujira1hvp3q00ypzrurd46h7c7c3hu86tx9uf84up6a2",
-  LIQUIDATION_WORKER: "kujira1gfmrf0wgjtmk6mylnke6v8ma523cguyjlzsrzu",
-  ORACLE_WORKER: "kujira17su0549xmtty7hfgf72dwh0nmp5rk9m58hpds3",
+  ADMIN: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+  WORKER: "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
 };
 
 /**
@@ -37,7 +35,9 @@ export const CHAIN_CONFIG: ChainConfig = {
             {
               WASM: "platform.wasm",
               LABEL: "platform",
-              INIT_MSG: toJson<PlatformTypes.InstantiateMsg>({}),
+              INIT_MSG: toJson<PlatformTypes.InstantiateMsg>({
+                worker: ADDRESS.WORKER,
+              }),
               MIGRATE_MSG: toJson<PlatformTypes.MigrateMsg>({
                 version: "1.0.0",
               }),

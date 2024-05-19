@@ -33,18 +33,38 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::RequestBoxList {} => e::try_request_box_list(deps, env, info),
+        ExecuteMsg::Buy {} => e::try_buy(deps, env, info),
 
-        ExecuteMsg::PickNumber {} => e::try_pick_number(deps, env, info),
+        ExecuteMsg::Open {} => e::try_open(deps, env, info),
+
+        ExecuteMsg::Claim {} => e::try_claim(deps, env, info),
+
+        ExecuteMsg::Send { amount, recipient } => e::try_send(deps, env, info, amount, recipient),
 
         ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
+
+        ExecuteMsg::Deposit {} => e::try_deposit(deps, env, info),
+
+        ExecuteMsg::Withdraw { amount } => e::try_withdraw(deps, env, info, amount),
+
+        ExecuteMsg::DepositNft { nft_info_list } => {
+            e::try_deposit_nft(deps, env, info, nft_info_list)
+        }
+
+        ExecuteMsg::WithdrawNft { nft_info_list } => {
+            e::try_withdraw_nft(deps, env, info, nft_info_list)
+        }
+
+        ExecuteMsg::UpdateNftPrice { nft_info_list } => {
+            e::try_update_nft_price(deps, env, info, nft_info_list)
+        }
 
         ExecuteMsg::UpdateConfig {
             admin,
             worker,
             box_price,
-            price_and_weight_list,
-            box_list_length,
+            denom,
+            distribution,
         } => e::try_update_config(
             deps,
             env,
@@ -52,9 +72,13 @@ pub fn execute(
             admin,
             worker,
             box_price,
-            price_and_weight_list,
-            box_list_length,
+            denom,
+            distribution,
         ),
+
+        ExecuteMsg::Lock {} => e::try_lock(deps, env, info),
+
+        ExecuteMsg::Unlock {} => e::try_unlock(deps, env, info),
     }
 }
 
@@ -64,7 +88,15 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
 
-        QueryMsg::QueryBoxList {} => to_json_binary(&q::query_box_list(deps, env)?),
+        QueryMsg::QueryBoxStats {} => to_json_binary(&q::query_box_stats(deps, env)?),
+
+        QueryMsg::QueryBalance {} => to_json_binary(&q::query_balance(deps, env)?),
+
+        QueryMsg::QueryUser { address } => to_json_binary(&q::query_user(deps, env, address)?),
+
+        QueryMsg::QueryUserList { start_after, limit } => {
+            to_json_binary(&q::query_user_list(deps, env, start_after, limit)?)
+        }
     }
 }
 

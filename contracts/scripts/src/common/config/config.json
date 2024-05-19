@@ -17,11 +17,11 @@
             {
               "WASM": "platform.wasm",
               "LABEL": "platform",
-              "INIT_MSG": "{}",
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\"}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{}}",
-              "CODE": 4173,
-              "ADDRESS": "stars13jndmhnvjvm3s8l3pj0tag5um6krnlvr9qvhru5jhz0p33pvnvfsskhxuy"
+              "CODE": 4183,
+              "ADDRESS": "stars1dcz6j6htzws6qytz789j2svdmvs0u00fu67tyfwqc7838f3ychdscm2sdd"
             }
           ],
           "IBC": []

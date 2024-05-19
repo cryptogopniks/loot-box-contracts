@@ -8,32 +8,57 @@ import { Coin } from "@cosmjs/amino";
 import { MsgExecuteContractEncodeObject } from "@cosmjs/cosmwasm-stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
-import { Uint128, Decimal, InstantiateMsg, ExecuteMsg, Timestamp, Uint64, HexBinary, NoisCallback, QueryMsg, MigrateMsg, BoxList, Addr, Config } from "./Platform.types";
+import { Uint128, Decimal, InstantiateMsg, WeightInfo, ExecuteMsg, NftInfoForString, QueryMsg, MigrateMsg, Addr, Balance, NftInfoForAddr, BoxStats, OpeningInfo, Config, UserInfo, ArrayOfQueryUserListResponseItem, QueryUserListResponseItem } from "./Platform.types";
 export interface PlatformMsg {
   contractAddress: string;
   sender: string;
-  noisReceive: ({
-    callback
+  buy: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  open: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  claim: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  send: ({
+    amount,
+    recipient
   }: {
-    callback: NoisCallback;
+    amount: Uint128;
+    recipient: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   acceptAdminRole: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  deposit: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  depositNft: ({
+    nftInfoList
+  }: {
+    nftInfoList: NftInfoForString[];
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   updateConfig: ({
     admin,
-    boxListLength,
     boxPrice,
-    priceAndWeightList,
-    proxy,
+    denom,
+    distribution,
     worker
   }: {
     admin?: string;
-    boxListLength?: number;
     boxPrice?: Uint128;
-    priceAndWeightList?: Uint128[][][];
-    proxy?: string;
+    denom?: string;
+    distribution?: WeightInfo[];
     worker?: string;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  requestBoxList: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  lock: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  unlock: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  withdraw: ({
+    amount
+  }: {
+    amount: Uint128;
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  withdrawNft: ({
+    nftInfoList
+  }: {
+    nftInfoList: NftInfoForString[];
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  updateNftPrice: ({
+    nftInfoList
+  }: {
+    nftInfoList: NftInfoForString[];
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
 }
 export class PlatformMsgComposer implements PlatformMsg {
   sender: string;
@@ -41,15 +66,65 @@ export class PlatformMsgComposer implements PlatformMsg {
   constructor(sender: string, contractAddress: string) {
     this.sender = sender;
     this.contractAddress = contractAddress;
-    this.noisReceive = this.noisReceive.bind(this);
+    this.buy = this.buy.bind(this);
+    this.open = this.open.bind(this);
+    this.claim = this.claim.bind(this);
+    this.send = this.send.bind(this);
     this.acceptAdminRole = this.acceptAdminRole.bind(this);
+    this.deposit = this.deposit.bind(this);
+    this.depositNft = this.depositNft.bind(this);
     this.updateConfig = this.updateConfig.bind(this);
-    this.requestBoxList = this.requestBoxList.bind(this);
+    this.lock = this.lock.bind(this);
+    this.unlock = this.unlock.bind(this);
+    this.withdraw = this.withdraw.bind(this);
+    this.withdrawNft = this.withdrawNft.bind(this);
+    this.updateNftPrice = this.updateNftPrice.bind(this);
   }
-  noisReceive = ({
-    callback
+  buy = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          buy: {}
+        })),
+        funds: _funds
+      })
+    };
+  };
+  open = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          open: {}
+        })),
+        funds: _funds
+      })
+    };
+  };
+  claim = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          claim: {}
+        })),
+        funds: _funds
+      })
+    };
+  };
+  send = ({
+    amount,
+    recipient
   }: {
-    callback: NoisCallback;
+    amount: Uint128;
+    recipient: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -57,8 +132,9 @@ export class PlatformMsgComposer implements PlatformMsg {
         sender: this.sender,
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
-          nois_receive: {
-            callback
+          send: {
+            amount,
+            recipient
           }
         })),
         funds: _funds
@@ -78,19 +154,49 @@ export class PlatformMsgComposer implements PlatformMsg {
       })
     };
   };
+  deposit = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          deposit: {}
+        })),
+        funds: _funds
+      })
+    };
+  };
+  depositNft = ({
+    nftInfoList
+  }: {
+    nftInfoList: NftInfoForString[];
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          deposit_nft: {
+            nft_info_list: nftInfoList
+          }
+        })),
+        funds: _funds
+      })
+    };
+  };
   updateConfig = ({
     admin,
-    boxListLength,
     boxPrice,
-    priceAndWeightList,
-    proxy,
+    denom,
+    distribution,
     worker
   }: {
     admin?: string;
-    boxListLength?: number;
     boxPrice?: Uint128;
-    priceAndWeightList?: Uint128[][][];
-    proxy?: string;
+    denom?: string;
+    distribution?: WeightInfo[];
     worker?: string;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
@@ -101,10 +207,9 @@ export class PlatformMsgComposer implements PlatformMsg {
         msg: toUtf8(JSON.stringify({
           update_config: {
             admin,
-            box_list_length: boxListLength,
             box_price: boxPrice,
-            price_and_weight_list: priceAndWeightList,
-            proxy,
+            denom,
+            distribution,
             worker
           }
         })),
@@ -112,14 +217,84 @@ export class PlatformMsgComposer implements PlatformMsg {
       })
     };
   };
-  requestBoxList = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+  lock = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
       value: MsgExecuteContract.fromPartial({
         sender: this.sender,
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
-          request_box_list: {}
+          lock: {}
+        })),
+        funds: _funds
+      })
+    };
+  };
+  unlock = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          unlock: {}
+        })),
+        funds: _funds
+      })
+    };
+  };
+  withdraw = ({
+    amount
+  }: {
+    amount: Uint128;
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          withdraw: {
+            amount
+          }
+        })),
+        funds: _funds
+      })
+    };
+  };
+  withdrawNft = ({
+    nftInfoList
+  }: {
+    nftInfoList: NftInfoForString[];
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          withdraw_nft: {
+            nft_info_list: nftInfoList
+          }
+        })),
+        funds: _funds
+      })
+    };
+  };
+  updateNftPrice = ({
+    nftInfoList
+  }: {
+    nftInfoList: NftInfoForString[];
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          update_nft_price: {
+            nft_info_list: nftInfoList
+          }
         })),
         funds: _funds
       })

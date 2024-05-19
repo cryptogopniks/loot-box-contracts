@@ -826,6 +826,7 @@ dependencies = [
  "cosmwasm-std",
  "cw-storage-plus 1.2.0",
  "cw2 1.1.2",
+ "cw721 0.18.0",
  "hashing-helper",
  "loot-box-base",
  "semver",
