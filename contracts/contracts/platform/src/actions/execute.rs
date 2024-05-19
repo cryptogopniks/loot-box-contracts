@@ -32,6 +32,10 @@ pub fn try_buy(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, 
     )?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
+    if asset_amount.is_zero() {
+        Err(ContractError::ZeroAmount)?;
+    }
+
     let Config {
         box_price, denom, ..
     } = CONFIG.load(deps.storage)?;
@@ -103,7 +107,7 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
     }
 
     // get random rewards
-    let password = &format!("{}{}", normalized_decimal.to_string(), block_time);
+    let password = &format!("{}{}", normalized_decimal, block_time);
     let salt = &address_to_salt(&sender_address);
     let hash_bytes = calc_hash_bytes(password, salt)?;
     let random_weight = Hash::from(hash_bytes).to_norm_dec();
@@ -121,10 +125,10 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
         .to_string()
         .chars()
         .last()
-        .unwrap()
+        .unwrap_or('0')
         .to_string()
         .parse::<u128>()
-        .unwrap();
+        .unwrap_or_default();
 
     if same_price_nft.is_some() && last_digit % 2 == 1 {
         // try to send nft
@@ -152,12 +156,14 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
         if rewards <= balance.pool {
             balance.pool -= rewards;
 
-            response = response
-                .add_message(BankMsg::Send {
+            if !rewards.is_zero() {
+                response = response.add_message(BankMsg::Send {
                     to_address: sender_address.to_string(),
                     amount: coins(rewards.u128(), denom),
                 })
-                .add_attribute("coins", rewards.u128().to_string());
+            }
+
+            response = response.add_attribute("coins", rewards.u128().to_string());
         } else {
             balance.rewards += rewards;
             user.rewards += rewards;
@@ -250,6 +256,10 @@ pub fn try_send(
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
+
+    if amount.is_zero() {
+        Err(ContractError::ZeroBoxAmount)?;
+    }
 
     let recipient = deps.api.addr_validate(&recipient)?;
 
@@ -353,6 +363,10 @@ pub fn try_withdraw(
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
 
+    if amount.is_zero() {
+        Err(ContractError::ZeroAmount)?;
+    }
+
     let Config { worker, denom, .. } = CONFIG.load(deps.storage)?;
     check_authorization(
         deps.as_ref(),
@@ -436,6 +450,10 @@ pub fn try_deposit_nft(
         .iter()
         .all(|x| rewards_list.contains(&x.price))
     {
+        Err(ContractError::ImproperNftPrice)?;
+    }
+
+    if nft_info_list.iter().any(|x| x.price.is_zero()) {
         Err(ContractError::ImproperNftPrice)?;
     }
 
@@ -599,6 +617,11 @@ pub fn try_update_nft_price(
 
     if collection_and_token_id_list.len() != nft_info_list.len() {
         Err(ContractError::NftDuplication)?;
+    }
+
+    // check nft prices
+    if nft_info_list.iter().any(|x| x.price.is_zero()) {
+        Err(ContractError::ImproperNftPrice)?;
     }
 
     // check if nfts aren't belong users
