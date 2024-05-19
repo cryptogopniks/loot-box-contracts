@@ -3,8 +3,8 @@ use cosmwasm_std::{Addr, Decimal, Uint128};
 
 #[cw_serde]
 pub struct Config {
-    pub admin: Addr,
-    pub worker: Option<Addr>,
+    pub admin: Addr,          // contract maintainer
+    pub worker: Option<Addr>, // app customer
 
     pub box_price: Uint128,
     pub denom: String,

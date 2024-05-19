@@ -10,8 +10,8 @@ use loot_box_base::{
     hash_generator::types::Hash,
     platform::{
         state::{
-            BALANCE, BOX_STATS, CONFIG, MEAN_WEIGHT, NORMALIZED_DECIMAL, TRANSFER_ADMIN_STATE,
-            TRANSFER_ADMIN_TIMEOUT, USERS,
+            BALANCE, BOX_STATS, CONFIG, IS_LOCKED, MEAN_WEIGHT, NORMALIZED_DECIMAL,
+            TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT, USERS,
         },
         types::{Balance, BoxStats, Config, NftInfo, TransferAdminState, UserInfo, WeightInfo},
     },
@@ -111,6 +111,7 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
 
     NORMALIZED_DECIMAL.save(deps.storage, &random_weight)?;
 
+    // TODO: check if it works
     if random_weight >= str_to_dec(MEAN_WEIGHT) {
         // try to send nft
         let same_price_nft = balance
@@ -135,7 +136,9 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
 
             response = response
                 .add_message(msg)
-                .add_attribute("nft", rewards.u128().to_string());
+                .add_attribute("nft", rewards.u128().to_string())
+                .add_attribute("collection", x.collection.to_string())
+                .add_attribute("token_id", x.token_id);
         }
     } else {
         // send rewards if balance is enough else accumulate rewards
@@ -462,7 +465,157 @@ pub fn try_deposit_nft(
     Ok(response)
 }
 
-// TODO: check roles
+pub fn try_withdraw_nft(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    nft_info_list: Vec<NftInfo<String>>,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+
+    let mut response = Response::new().add_attribute("action", "try_withdraw_nft");
+    let mut balance = BALANCE.load(deps.storage)?;
+    let Config { worker, .. } = CONFIG.load(deps.storage)?;
+    check_authorization(
+        deps.as_ref(),
+        &sender_address,
+        AuthType::Specified {
+            allowlist: vec![worker],
+        },
+    )?;
+
+    if nft_info_list.is_empty() {
+        Err(ContractError::EmptyCollectionList)?;
+    }
+
+    // check collection addresses
+    let nft_info_list = nft_info_list
+        .into_iter()
+        .map(|x| {
+            Ok(NftInfo {
+                collection: deps.api.addr_validate(&x.collection)?,
+                token_id: x.token_id,
+                price: x.price,
+            })
+        })
+        .collect::<StdResult<Vec<NftInfo<Addr>>>>()?;
+
+    // check nft duplication
+    let mut collection_and_token_id_list: Vec<String> = nft_info_list
+        .iter()
+        .map(|x| format!("{}{}", x.collection, x.token_id))
+        .collect();
+
+    collection_and_token_id_list.sort_unstable();
+    collection_and_token_id_list.dedup();
+
+    if collection_and_token_id_list.len() != nft_info_list.len() {
+        Err(ContractError::NftDuplication)?;
+    }
+
+    // check if nfts aren't belong users
+    if nft_info_list.iter().any(|x| !balance.nft_pool.contains(&x)) {
+        Err(ContractError::NftIsNotFound)?;
+    }
+
+    // add transfer msgs
+    for NftInfo {
+        collection,
+        token_id,
+        ..
+    } in &nft_info_list
+    {
+        let cw721_msg = cw721::Cw721ExecuteMsg::TransferNft {
+            recipient: sender_address.to_string(),
+            token_id: token_id.to_string(),
+        };
+
+        let msg = WasmMsg::Execute {
+            contract_addr: collection.to_string(),
+            msg: to_json_binary(&cw721_msg)?,
+            funds: vec![],
+        };
+
+        response = response.add_message(msg);
+    }
+
+    balance.nft_pool.retain(|x| !nft_info_list.contains(x));
+    BALANCE.save(deps.storage, &balance)?;
+
+    Ok(response)
+}
+
+pub fn try_update_nft_price(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    nft_info_list: Vec<NftInfo<String>>,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+
+    let mut balance = BALANCE.load(deps.storage)?;
+    let Config { worker, .. } = CONFIG.load(deps.storage)?;
+    check_authorization(
+        deps.as_ref(),
+        &sender_address,
+        AuthType::Specified {
+            allowlist: vec![worker],
+        },
+    )?;
+
+    if nft_info_list.is_empty() {
+        Err(ContractError::EmptyCollectionList)?;
+    }
+
+    // check collection addresses
+    let nft_info_list = nft_info_list
+        .into_iter()
+        .map(|x| {
+            Ok(NftInfo {
+                collection: deps.api.addr_validate(&x.collection)?,
+                token_id: x.token_id,
+                price: x.price,
+            })
+        })
+        .collect::<StdResult<Vec<NftInfo<Addr>>>>()?;
+
+    // check nft duplication
+    let mut collection_and_token_id_list: Vec<String> = nft_info_list
+        .iter()
+        .map(|x| format!("{}{}", x.collection, x.token_id))
+        .collect();
+
+    collection_and_token_id_list.sort_unstable();
+    collection_and_token_id_list.dedup();
+
+    if collection_and_token_id_list.len() != nft_info_list.len() {
+        Err(ContractError::NftDuplication)?;
+    }
+
+    // check if nfts aren't belong users
+    if nft_info_list.iter().any(|x| !balance.nft_pool.contains(&x)) {
+        Err(ContractError::NftIsNotFound)?;
+    }
+
+    // update prices
+    balance.nft_pool = balance
+        .nft_pool
+        .into_iter()
+        .map(|mut x| {
+            if let Some(y) = nft_info_list.iter().find(|y| y == &&x) {
+                x.price = y.price;
+            }
+
+            x
+        })
+        .collect();
+    BALANCE.save(deps.storage, &balance)?;
+
+    Ok(Response::new().add_attribute("action", "try_update_nft_price"))
+}
+
 pub fn try_update_config(
     deps: DepsMut,
     env: Env,
@@ -494,25 +647,25 @@ pub fn try_update_config(
     }
 
     if let Some(x) = worker {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
         config.worker = Some(deps.api.addr_validate(&x)?);
         is_config_updated = true;
     }
 
     if let Some(x) = box_price {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
         config.box_price = x;
         is_config_updated = true;
     }
 
     if let Some(x) = denom {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
         config.denom = x;
         is_config_updated = true;
     }
 
     if let Some(x) = distribution {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
 
         if x.iter().any(|y| y.weight > Decimal::one()) {
             Err(ContractError::WeightIsOutOfRange)?;
@@ -535,4 +688,22 @@ pub fn try_update_config(
     CONFIG.save(deps.storage, &config)?;
 
     Ok(Response::new().add_attribute("action", "try_update_config"))
+}
+
+pub fn try_lock(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+
+    IS_LOCKED.save(deps.storage, &true)?;
+
+    Ok(Response::new().add_attributes([("action", "try_lock")]))
+}
+
+pub fn try_unlock(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
+
+    IS_LOCKED.save(deps.storage, &false)?;
+
+    Ok(Response::new().add_attributes([("action", "try_unlock")]))
 }

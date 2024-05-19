@@ -51,9 +51,13 @@ pub fn execute(
             e::try_deposit_nft(deps, env, info, nft_info_list)
         }
 
-        ExecuteMsg::WithdrawNft { nft_info_list } => unimplemented!(),
+        ExecuteMsg::WithdrawNft { nft_info_list } => {
+            e::try_withdraw_nft(deps, env, info, nft_info_list)
+        }
 
-        ExecuteMsg::UpdateNftPrice { nft_info_list } => unimplemented!(),
+        ExecuteMsg::UpdateNftPrice { nft_info_list } => {
+            e::try_update_nft_price(deps, env, info, nft_info_list)
+        }
 
         ExecuteMsg::UpdateConfig {
             admin,
@@ -71,6 +75,10 @@ pub fn execute(
             denom,
             distribution,
         ),
+
+        ExecuteMsg::Lock {} => e::try_lock(deps, env, info),
+
+        ExecuteMsg::Unlock {} => e::try_unlock(deps, env, info),
     }
 }
 

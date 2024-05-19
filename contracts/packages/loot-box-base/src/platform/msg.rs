@@ -32,25 +32,13 @@ pub enum ExecuteMsg {
         recipient: String,
     },
 
-    // any
+    // new_admin
     AcceptAdminRole {},
 
-    // admin
+    // admin, worker
     Deposit {},
 
-    Withdraw {
-        amount: Uint128,
-    },
-
     DepositNft {
-        nft_info_list: Vec<NftInfo<String>>,
-    },
-
-    WithdrawNft {
-        nft_info_list: Vec<NftInfo<String>>,
-    },
-
-    UpdateNftPrice {
         nft_info_list: Vec<NftInfo<String>>,
     },
 
@@ -61,6 +49,23 @@ pub enum ExecuteMsg {
         box_price: Option<Uint128>,
         denom: Option<String>,
         distribution: Option<Vec<WeightInfo>>,
+    },
+
+    Lock {},
+
+    Unlock {},
+
+    // worker
+    Withdraw {
+        amount: Uint128,
+    },
+
+    WithdrawNft {
+        nft_info_list: Vec<NftInfo<String>>,
+    },
+
+    UpdateNftPrice {
+        nft_info_list: Vec<NftInfo<String>>,
     },
 }
 
