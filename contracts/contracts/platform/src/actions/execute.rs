@@ -522,7 +522,7 @@ pub fn try_withdraw_nft(
     }
 
     // check if nfts aren't belong users
-    if nft_info_list.iter().any(|x| !balance.nft_pool.contains(&x)) {
+    if nft_info_list.iter().any(|x| !balance.nft_pool.contains(x)) {
         Err(ContractError::NftIsNotFound)?;
     }
 
@@ -602,7 +602,7 @@ pub fn try_update_nft_price(
     }
 
     // check if nfts aren't belong users
-    if nft_info_list.iter().any(|x| !balance.nft_pool.contains(&x)) {
+    if nft_info_list.iter().any(|x| !balance.nft_pool.contains(x)) {
         Err(ContractError::NftIsNotFound)?;
     }
 
@@ -623,6 +623,7 @@ pub fn try_update_nft_price(
     Ok(Response::new().add_attribute("action", "try_update_nft_price"))
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn try_update_config(
     deps: DepsMut,
     env: Env,
