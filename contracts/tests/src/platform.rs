@@ -7,7 +7,10 @@ use loot_box_base::converters::{str_to_dec, u128_to_dec};
 
 use crate::helpers::{
     platform::PlatformExtension,
-    suite::{core::Project, types::ProjectAccount},
+    suite::{
+        core::Project,
+        types::{ProjectAccount, ProjectCoin},
+    },
 };
 
 // x0 + x1 + x2 + x3 + x4 = 1
@@ -27,7 +30,8 @@ use crate::helpers::{
 
 fn parse_attr(res: &AppResponse, key: &str) -> String {
     res.events
-        .last()
+        .iter()
+        .find(|x| x.attributes.iter().any(|y| y.key == key))
         .unwrap()
         .attributes
         .iter()
@@ -38,7 +42,7 @@ fn parse_attr(res: &AppResponse, key: &str) -> String {
 }
 
 #[test]
-fn pick_number_default() -> StdResult<()> {
+fn opening_stats() -> StdResult<()> {
     const BOX_PRICE: u128 = 100;
     const ROUNDS: u128 = 1000;
 
@@ -55,19 +59,13 @@ fn pick_number_default() -> StdResult<()> {
     let mut stats: Vec<u128> = vec![0; price_and_weight_list.len()];
     let mut price_list: Vec<u128> = vec![];
 
-    project.platform_try_update_config(
-        ProjectAccount::Admin,
-        &None,
-        &None,
-        &Some(BOX_PRICE),
-        &Some(price_and_weight_list.clone()),
-        &None,
-    )?;
+    project.platform_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
 
     for _ in 0..ROUNDS {
-        let res = project.platform_try_pick_number(ProjectAccount::Alice)?;
+        project.platform_try_buy(ProjectAccount::Alice, BOX_PRICE, ProjectCoin::Stars)?;
+        let res = project.platform_try_open(ProjectAccount::Alice)?;
 
-        let price = parse_attr(&res, "price").parse::<u128>().unwrap();
+        let price = parse_attr(&res, "coins").parse::<u128>().unwrap();
         price_list.push(price);
 
         let idx = price_and_weight_list
@@ -77,7 +75,7 @@ fn pick_number_default() -> StdResult<()> {
             .unwrap();
         stats[idx] += 1;
 
-        project.wait(1);
+        project.wait(5);
     }
 
     let stats = stats
@@ -94,12 +92,12 @@ fn pick_number_default() -> StdResult<()> {
     // println!("{:#?}", math_exp.to_string());
 
     assert_that(&stats).is_equal_to(
-        vec!["0.465", "0.382", "0.091", "0.043", "0.019"]
+        vec!["0.463", "0.388", "0.085", "0.046", "0.018"]
             .into_iter()
             .map(|x| str_to_dec(x))
             .collect::<Vec<Decimal>>(),
     );
-    assert_that(&math_exp.to_string().as_str()).is_equal_to("82.35");
+    assert_that(&math_exp.to_string().as_str()).is_equal_to("81.65");
 
     // // cumulative stats
     // let mut cumulative_price: i128 = 0;

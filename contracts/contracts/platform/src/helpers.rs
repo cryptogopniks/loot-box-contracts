@@ -15,7 +15,7 @@ pub fn pick_rewards(distribution: &[WeightInfo], random_weight: Decimal) -> Uint
     for WeightInfo {
         box_rewards,
         weight,
-    } in distribution.to_owned()
+    } in distribution.iter().cloned()
     {
         accumulated_weight += weight;
 
