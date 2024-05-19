@@ -36,6 +36,7 @@ import {
   QueryOwnerOf,
   OwnerOfResponse,
 } from "../interfaces";
+import { NftInfoForString, WeightInfo } from "../codegen/Platform.types";
 
 function addSingleTokenToComposerObj(
   obj: MsgExecuteContractEncodeObject,
@@ -180,6 +181,38 @@ async function getCwExecHelpers(
 
   // platform
 
+  async function cwBuy(amount: number, denom: string, gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [
+        addSingleTokenToComposerObj(platformMsgComposer.buy(), amount, {
+          native: { denom },
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwOpen(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [platformMsgComposer.open()],
+      gasPrice
+    );
+  }
+
+  async function cwClaim(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [platformMsgComposer.claim()],
+      gasPrice
+    );
+  }
+
+  async function cwSend(amount: number, recipient: string, gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [platformMsgComposer.send({ amount: amount.toString(), recipient })],
+      gasPrice
+    );
+  }
+
   async function cwPlatformAcceptAdminRole(gasPrice: string) {
     return await _msgWrapperWithGasPrice(
       [platformMsgComposer.acceptAdminRole()],
@@ -187,21 +220,68 @@ async function getCwExecHelpers(
     );
   }
 
+  async function cwDeposit(amount: number, denom: string, gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [
+        addSingleTokenToComposerObj(platformMsgComposer.deposit(), amount, {
+          native: { denom },
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwApproveAndDepositNft(
+    senderAddress: string,
+    operator: string,
+    nftInfoList: NftInfoForString[],
+    gasPrice: string
+  ) {
+    const collectionList = Array.from(
+      new Set(nftInfoList.map((x) => x.collection))
+    );
+    const queryAllOperatorsMsg: QueryAllOperatorsMsg = {
+      all_operators: {
+        owner: senderAddress,
+      },
+    };
+
+    let msgList: MsgExecuteContractEncodeObject[] = [];
+
+    for (const collectionAddress of collectionList) {
+      const { operators }: QueryAllOperatorsResponse =
+        await signingClient.queryContractSmart(
+          collectionAddress,
+          queryAllOperatorsMsg
+        );
+
+      const targetOperator = operators.find((x) => x.spender === operator);
+
+      if (!targetOperator) {
+        msgList.push(
+          getApproveCollectionMsg(collectionAddress, senderAddress, operator)
+        );
+      }
+    }
+
+    msgList.push(platformMsgComposer.depositNft({ nftInfoList }));
+
+    return await _msgWrapperWithGasPrice(msgList, gasPrice);
+  }
+
   async function cwPlatformUpdateConfig(
     {
       admin,
       worker,
-      proxy,
       boxPrice,
-      priceAndWeightList,
-      boxListLength,
+      denom,
+      distribution,
     }: {
       admin?: string;
       worker?: string;
-      proxy?: string;
       boxPrice?: number;
-      priceAndWeightList?: [number, number][];
-      boxListLength?: number;
+      denom?: string;
+      distribution?: WeightInfo[];
     },
     gasPrice: string
   ) {
@@ -210,32 +290,52 @@ async function getCwExecHelpers(
         platformMsgComposer.updateConfig({
           admin,
           worker,
-          proxy,
           boxPrice: boxPrice?.toString(),
-          priceAndWeightList: priceAndWeightList?.map(([price, weight]) => [
-            price.toString(),
-            weight.toString(),
-          ]) as any,
-          boxListLength,
+          denom,
+          distribution,
         }),
       ],
       gasPrice
     );
   }
 
-  async function cwRequestBoxList(
-    amount: number,
-    token: TokenUnverified,
+  async function cwLock(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [platformMsgComposer.lock()],
+      gasPrice
+    );
+  }
+
+  async function cwUnlock(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [platformMsgComposer.unlock()],
+      gasPrice
+    );
+  }
+
+  async function cwWithdraw(amount: number, gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [platformMsgComposer.withdraw({ amount: amount.toString() })],
+      gasPrice
+    );
+  }
+
+  async function cwWithdrawNft(
+    nftInfoList: NftInfoForString[],
     gasPrice: string
   ) {
     return await _msgWrapperWithGasPrice(
-      [
-        addSingleTokenToComposerObj(
-          platformMsgComposer.requestBoxList(),
-          amount,
-          token
-        ),
-      ],
+      [platformMsgComposer.withdrawNft({ nftInfoList })],
+      gasPrice
+    );
+  }
+
+  async function cwUpdateNftPrice(
+    nftInfoList: NftInfoForString[],
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [platformMsgComposer.updateNftPrice({ nftInfoList })],
       gasPrice
     );
   }
@@ -243,9 +343,19 @@ async function getCwExecHelpers(
   return {
     utils: { cwRevoke },
     platform: {
+      cwBuy,
+      cwOpen,
+      cwClaim,
+      cwSend,
       cwAcceptAdminRole: cwPlatformAcceptAdminRole,
+      cwDeposit,
+      cwApproveAndDepositNft,
       cwUpdateConfig: cwPlatformUpdateConfig,
-      cwRequestBoxList,
+      cwLock,
+      cwUnlock,
+      cwWithdraw,
+      cwWithdrawNft,
+      cwUpdateNftPrice,
     },
   };
 }
@@ -363,8 +473,23 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     return logAndReturn(res);
   }
 
-  async function cwQueryBoxList() {
-    const res = await platformQueryClient.queryBoxList();
+  async function cwQueryBoxStats() {
+    const res = await platformQueryClient.queryBoxStats();
+    return logAndReturn(res);
+  }
+
+  async function cwQueryBalance() {
+    const res = await platformQueryClient.queryBalance();
+    return logAndReturn(res);
+  }
+
+  async function cwQueryUser(address: string) {
+    const res = await platformQueryClient.queryUser({ address });
+    return logAndReturn(res);
+  }
+
+  async function cwQueryUserList(limit: number = 10_000, startAfter?: string) {
+    const res = await platformQueryClient.queryUserList({ startAfter, limit });
     return logAndReturn(res);
   }
 
@@ -377,7 +502,10 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
     },
     platfrorm: {
       cwQueryConfig: cwPlatformQueryConfig,
-      cwQueryBoxList,
+      cwQueryBoxStats,
+      cwQueryBalance,
+      cwQueryUser,
+      cwQueryUserList,
     },
   };
 }
