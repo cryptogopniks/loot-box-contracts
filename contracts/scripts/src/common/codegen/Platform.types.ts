@@ -7,56 +7,121 @@
 export type Uint128 = string;
 export type Decimal = string;
 export interface InstantiateMsg {
-  box_list_length?: number | null;
   box_price?: Uint128 | null;
-  price_and_weight_list?: [Uint128, Decimal][] | null;
-  proxy?: string | null;
+  denom?: string | null;
+  distribution?: WeightInfo[] | null;
   worker?: string | null;
 }
+export interface WeightInfo {
+  box_rewards: Uint128;
+  weight: Decimal;
+}
 export type ExecuteMsg = {
-  nois_receive: {
-    callback: NoisCallback;
+  buy: {};
+} | {
+  open: {};
+} | {
+  claim: {};
+} | {
+  send: {
+    amount: Uint128;
+    recipient: string;
   };
 } | {
   accept_admin_role: {};
 } | {
+  deposit: {};
+} | {
+  deposit_nft: {
+    nft_info_list: NftInfoForString[];
+  };
+} | {
   update_config: {
     admin?: string | null;
-    box_list_length?: number | null;
     box_price?: Uint128 | null;
-    price_and_weight_list?: [Uint128, Decimal][] | null;
-    proxy?: string | null;
+    denom?: string | null;
+    distribution?: WeightInfo[] | null;
     worker?: string | null;
   };
 } | {
-  request_box_list: {};
+  lock: {};
+} | {
+  unlock: {};
+} | {
+  withdraw: {
+    amount: Uint128;
+  };
+} | {
+  withdraw_nft: {
+    nft_info_list: NftInfoForString[];
+  };
+} | {
+  update_nft_price: {
+    nft_info_list: NftInfoForString[];
+  };
 };
-export type Timestamp = Uint64;
-export type Uint64 = string;
-export type HexBinary = string;
-export interface NoisCallback {
-  job_id: string;
-  published: Timestamp;
-  randomness: HexBinary;
+export interface NftInfoForString {
+  collection: string;
+  price: Uint128;
+  token_id: string;
 }
 export type QueryMsg = {
   query_config: {};
 } | {
-  query_box_list: {};
+  query_box_stats: {};
+} | {
+  query_balance: {};
+} | {
+  query_user: {
+    address: string;
+  };
+} | {
+  query_user_list: {
+    limit?: number | null;
+    start_after?: string | null;
+  };
 };
 export interface MigrateMsg {
   version: string;
 }
-export interface BoxList {
-  price_list: Uint128[];
-  update_date: number;
-}
 export type Addr = string;
+export interface Balance {
+  deposited: Uint128;
+  nft_pool: NftInfoForAddr[];
+  pool: Uint128;
+  rewards: Uint128;
+}
+export interface NftInfoForAddr {
+  collection: Addr;
+  price: Uint128;
+  token_id: string;
+}
+export interface BoxStats {
+  opened: OpeningInfo[];
+  sold: Uint128;
+}
+export interface OpeningInfo {
+  box_rewards: Uint128;
+  opened: Uint128;
+}
 export interface Config {
   admin: Addr;
-  box_list_length: number;
   box_price: Uint128;
-  price_and_weight_list: [Uint128, Decimal][];
-  proxy?: Addr | null;
+  denom: string;
+  distribution: WeightInfo[];
   worker?: Addr | null;
+}
+export interface UserInfo {
+  bought: Uint128;
+  boxes: Uint128;
+  opened: OpeningInfo[];
+  opening_block: number;
+  received: Uint128;
+  rewards: Uint128;
+  sent: Uint128;
+}
+export type ArrayOfQueryUserListResponseItem = QueryUserListResponseItem[];
+export interface QueryUserListResponseItem {
+  address: Addr;
+  info: UserInfo;
 }

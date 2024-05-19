@@ -5,13 +5,13 @@ use cosmwasm_std::{
 
 use hashing_helper::base::calc_hash_bytes;
 use loot_box_base::{
-    converters::{address_to_salt, str_to_dec},
+    converters::address_to_salt,
     error::ContractError,
     hash_generator::types::Hash,
     platform::{
         state::{
-            BALANCE, BOX_STATS, CONFIG, IS_LOCKED, MEAN_WEIGHT, NORMALIZED_DECIMAL,
-            TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT, USERS,
+            BALANCE, BOX_STATS, CONFIG, IS_LOCKED, NORMALIZED_DECIMAL, TRANSFER_ADMIN_STATE,
+            TRANSFER_ADMIN_TIMEOUT, USERS,
         },
         types::{Balance, BoxStats, Config, NftInfo, TransferAdminState, UserInfo, WeightInfo},
     },
@@ -111,35 +111,42 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
 
     NORMALIZED_DECIMAL.save(deps.storage, &random_weight)?;
 
-    // TODO: check if it works
-    if random_weight >= str_to_dec(MEAN_WEIGHT) {
+    let same_price_nft = balance
+        .nft_pool
+        .iter()
+        .cloned()
+        .find(|x| x.price == rewards);
+
+    let last_digit = random_weight
+        .to_string()
+        .chars()
+        .last()
+        .unwrap()
+        .to_string()
+        .parse::<u128>()
+        .unwrap();
+
+    if same_price_nft.is_some() && last_digit % 2 == 1 {
         // try to send nft
-        let same_price_nft = balance
-            .nft_pool
-            .iter()
-            .cloned()
-            .find(|x| x.price == rewards);
+        let x = same_price_nft.unwrap();
+        balance.nft_pool.retain(|y| y != &x);
 
-        if let Some(x) = same_price_nft {
-            balance.nft_pool.retain(|y| y != &x);
+        let cw721_msg = cw721::Cw721ExecuteMsg::TransferNft {
+            recipient: sender_address.to_string(),
+            token_id: x.token_id.to_string(),
+        };
 
-            let cw721_msg = cw721::Cw721ExecuteMsg::TransferNft {
-                recipient: sender_address.to_string(),
-                token_id: x.token_id.to_string(),
-            };
+        let msg = WasmMsg::Execute {
+            contract_addr: x.collection.to_string(),
+            msg: to_json_binary(&cw721_msg)?,
+            funds: vec![],
+        };
 
-            let msg = WasmMsg::Execute {
-                contract_addr: x.collection.to_string(),
-                msg: to_json_binary(&cw721_msg)?,
-                funds: vec![],
-            };
-
-            response = response
-                .add_message(msg)
-                .add_attribute("nft", rewards.u128().to_string())
-                .add_attribute("collection", x.collection.to_string())
-                .add_attribute("token_id", x.token_id);
-        }
+        response = response
+            .add_message(msg)
+            .add_attribute("nft", rewards.u128().to_string())
+            .add_attribute("collection", x.collection.to_string())
+            .add_attribute("token_id", x.token_id);
     } else {
         // send rewards if balance is enough else accumulate rewards
         if rewards <= balance.pool {
