@@ -2,6 +2,7 @@ import { access, readFile } from "fs/promises";
 import { decrypt, l, li, getLast } from "../../common/utils";
 import { PATH, rootPath } from "../envs";
 import { Wasm, ChainType, Wallets, StoreArgs } from "../../common/interfaces";
+import { DeliverTxResponse } from "@cosmjs/cosmwasm-stargate";
 
 const ENCODING = "utf8";
 const PATH_TO_CONFIG_JSON = rootPath("./src/common/config/config.json");
@@ -65,6 +66,15 @@ async function getWallets(chainType: ChainType): Promise<Wallets> {
   return testWallets;
 }
 
+function parseWasmAttribute(
+  txRes: DeliverTxResponse,
+  attribute: string
+): string | undefined {
+  return txRes.events
+    .find((x) => x.type === "wasm")
+    ?.attributes.find((x) => x.key === attribute)?.value;
+}
+
 export {
   ENCODING,
   PATH_TO_CONFIG_JSON,
@@ -72,4 +82,5 @@ export {
   parseChainId,
   parseStoreArgs,
   getWallets,
+  parseWasmAttribute,
 };
