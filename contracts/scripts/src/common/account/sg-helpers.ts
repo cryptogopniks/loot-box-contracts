@@ -40,7 +40,7 @@ async function getSgExecHelpers(
         amount: [amount],
       },
     };
-    const tx = await signAndBroadcast([msg], gasPrice);
+    const tx = await signAndBroadcast([msg], gasPrice, 1.2);
     l("\n", tx, "\n");
     return tx;
   }
@@ -119,6 +119,14 @@ async function getSgQueryHelpers(rpc: string) {
   const bankExtension = setupBankExtension(queryClient);
   const stakingExtension = setupStakingExtension(queryClient);
 
+  async function getBalance(address: string, denom: string) {
+    const res = await bankExtension.bank.balance(address, denom);
+    l();
+    li(res);
+    l();
+    return res;
+  }
+
   async function getAllBalances(address: string) {
     const res = await bankExtension.bank.allBalances(address);
     l();
@@ -146,7 +154,7 @@ async function getSgQueryHelpers(rpc: string) {
     return validators;
   }
 
-  return { getAllBalances, getMetadata, getValidators };
+  return { getBalance, getAllBalances, getMetadata, getValidators };
 }
 
 export { getSgExecHelpers, getSgQueryHelpers };

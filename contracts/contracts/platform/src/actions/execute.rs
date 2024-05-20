@@ -13,7 +13,10 @@ use loot_box_base::{
             BALANCE, BOX_STATS, CONFIG, IS_LOCKED, NORMALIZED_DECIMAL, TRANSFER_ADMIN_STATE,
             TRANSFER_ADMIN_TIMEOUT, USERS,
         },
-        types::{Balance, BoxStats, Config, NftInfo, TransferAdminState, UserInfo, WeightInfo},
+        types::{
+            Balance, BoxStats, Config, NftInfo, OpeningInfo, TransferAdminState, UserInfo,
+            WeightInfo,
+        },
     },
     utils::{check_funds, AuthType, FundsType},
 };
@@ -96,6 +99,7 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
         .load(deps.storage, &sender_address)
         .unwrap_or_default();
 
+    // TODO: use 1 s timeout
     // don't allow to open multiple boxes in single block
     if user.opening_block == block_height {
         Err(ContractError::MultipleBoxesPerBlock)?;
@@ -174,6 +178,14 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
 
     user.opening_block = block_height;
     user.boxes -= Uint128::one();
+
+    if !user.opened.iter().any(|x| x.box_rewards == rewards) {
+        user.opened.push(OpeningInfo {
+            box_rewards: rewards,
+            opened: Uint128::zero(),
+        });
+    }
+
     user.opened = user
         .opened
         .into_iter()
@@ -189,6 +201,13 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
     USERS.save(deps.storage, &sender_address, &user)?;
 
     BOX_STATS.update(deps.storage, |mut x| -> StdResult<BoxStats> {
+        if !x.opened.iter().any(|y| y.box_rewards == rewards) {
+            x.opened.push(OpeningInfo {
+                box_rewards: rewards,
+                opened: Uint128::zero(),
+            });
+        }
+
         x.opened = x
             .opened
             .into_iter()
