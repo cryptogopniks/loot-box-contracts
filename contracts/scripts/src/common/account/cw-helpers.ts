@@ -199,6 +199,16 @@ async function getCwExecHelpers(
     );
   }
 
+  /** for tests */
+  async function cwOpenMultiple(amount: number, gasPrice: string) {
+    const msg = platformMsgComposer.open();
+
+    return await _msgWrapperWithGasPrice(
+      [...new Array(amount)].map(() => msg),
+      gasPrice
+    );
+  }
+
   async function cwClaim(gasPrice: string) {
     return await _msgWrapperWithGasPrice(
       [platformMsgComposer.claim()],
@@ -356,6 +366,8 @@ async function getCwExecHelpers(
       cwWithdraw,
       cwWithdrawNft,
       cwUpdateNftPrice,
+
+      cwOpenMultiple,
     },
   };
 }
