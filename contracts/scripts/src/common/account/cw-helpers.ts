@@ -128,7 +128,8 @@ async function getCwExecHelpers(
   chainId: string,
   rpc: string,
   owner: string,
-  signer: (OfflineSigner & OfflineDirectSigner) | DirectSecp256k1HdWallet
+  signer: (OfflineSigner & OfflineDirectSigner) | DirectSecp256k1HdWallet,
+  contractAddress?: string
 ) {
   const CHAIN_CONFIG = CONFIG_JSON as ChainConfig;
   const {
@@ -151,7 +152,7 @@ async function getCwExecHelpers(
 
   const platformMsgComposer = new PlatformMsgComposer(
     owner,
-    PLATFORM_CONTRACT ? PLATFORM_CONTRACT.ADDRESS : ""
+    contractAddress || (PLATFORM_CONTRACT ? PLATFORM_CONTRACT.ADDRESS : "")
   );
 
   async function _msgWrapperWithGasPrice(
@@ -372,7 +373,11 @@ async function getCwExecHelpers(
   };
 }
 
-async function getCwQueryHelpers(chainId: string, rpc: string) {
+async function getCwQueryHelpers(
+  chainId: string,
+  rpc: string,
+  contractAddress?: string
+) {
   const CHAIN_CONFIG = CONFIG_JSON as ChainConfig;
   const {
     OPTION: { CONTRACTS },
@@ -393,7 +398,7 @@ async function getCwQueryHelpers(chainId: string, rpc: string) {
 
   const platformQueryClient = new PlatformQueryClient(
     cosmwasmQueryClient,
-    PLATFORM_CONTRACT ? PLATFORM_CONTRACT.ADDRESS : ""
+    contractAddress || (PLATFORM_CONTRACT ? PLATFORM_CONTRACT.ADDRESS : "")
   );
 
   // utils
