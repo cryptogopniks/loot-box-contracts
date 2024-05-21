@@ -55,7 +55,7 @@ pub struct UserInfo {
     pub opened: Vec<OpeningInfo>,
     pub sent: Uint128,
     pub received: Uint128,
-    pub opening_block: u64,
+    pub opening_date: u64,
 }
 
 #[cw_serde]

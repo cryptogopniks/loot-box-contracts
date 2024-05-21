@@ -10,8 +10,8 @@ use loot_box_base::{
     hash_generator::types::Hash,
     platform::{
         state::{
-            BALANCE, BOX_STATS, CONFIG, IS_LOCKED, NORMALIZED_DECIMAL, TRANSFER_ADMIN_STATE,
-            TRANSFER_ADMIN_TIMEOUT, USERS,
+            BALANCE, BOX_STATS, CONFIG, IS_LOCKED, NORMALIZED_DECIMAL, OPENING_COOLDOWN,
+            TRANSFER_ADMIN_STATE, TRANSFER_ADMIN_TIMEOUT, USERS,
         },
         types::{
             Balance, BoxStats, Config, NftInfo, OpeningInfo, TransferAdminState, UserInfo,
@@ -86,8 +86,7 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
     let mut response = Response::new().add_attribute("action", "try_open");
-    let block_time = env.block.time.nanos();
-    let block_height = env.block.height;
+    let block_time = env.block.time.seconds();
     let normalized_decimal = NORMALIZED_DECIMAL.load(deps.storage)?;
     let Config {
         denom,
@@ -99,10 +98,9 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
         .load(deps.storage, &sender_address)
         .unwrap_or_default();
 
-    // TODO: use 1 s timeout
-    // don't allow to open multiple boxes in single block
-    if user.opening_block == block_height {
-        Err(ContractError::MultipleBoxesPerBlock)?;
+    // don't allow to open multiple boxes in single tx
+    if block_time < user.opening_date + OPENING_COOLDOWN {
+        Err(ContractError::MultipleBoxesPerTx)?;
     }
 
     // check box amount
@@ -111,7 +109,7 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
     }
 
     // get random rewards
-    let password = &format!("{}{}", normalized_decimal, block_time);
+    let password = &format!("{}{}", normalized_decimal, env.block.time.nanos());
     let salt = &address_to_salt(&sender_address);
     let hash_bytes = calc_hash_bytes(password, salt)?;
     let random_weight = Hash::from(hash_bytes).to_norm_dec();
@@ -176,7 +174,7 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
         }
     }
 
-    user.opening_block = block_height;
+    user.opening_date = block_time;
     user.boxes -= Uint128::one();
 
     if !user.opened.iter().any(|x| x.box_rewards == rewards) {

@@ -67,8 +67,8 @@ pub enum ContractError {
     #[error("The user doesn't have rewards!")]
     ZeroRewardsAmount,
 
-    #[error("A user can't open multiple boxes in single block!")]
-    MultipleBoxesPerBlock,
+    #[error("A user can't open multiple boxes in single tx!")]
+    MultipleBoxesPerTx,
 
     #[error("Empty collection list!")]
     EmptyCollectionList,
