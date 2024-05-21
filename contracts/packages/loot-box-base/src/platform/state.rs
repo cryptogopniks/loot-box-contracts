@@ -8,6 +8,7 @@ pub const CONTRACT_NAME: &str = "cryptogopniks-loot-box";
 pub const MEAN_WEIGHT: &str = "0.5";
 pub const BOX_PRICE_DEFAULT: u128 = 100;
 pub const DENOM_DEFAULT: &str = "ustars";
+pub const OPENING_COOLDOWN: u64 = 1;
 
 pub const PAGINATION_MAX_LIMIT: u32 = 10_000;
 pub const PAGINATION_DEFAULT_LIMIT: u32 = 1_000;

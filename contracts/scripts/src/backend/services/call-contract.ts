@@ -3,11 +3,13 @@ import { l, li, wait } from "../../common/utils";
 import { readFile } from "fs/promises";
 import { ChainConfig } from "../../common/interfaces";
 import { ADDRESS } from "../../common/config";
+import { coin } from "@cosmjs/stargate";
 import {
   ENCODING,
   PATH_TO_CONFIG_JSON,
   getWallets,
   parseStoreArgs,
+  parseWasmAttribute,
 } from "./utils";
 import {
   getChainOptionById,
@@ -51,11 +53,42 @@ async function main() {
     const { utils, platfrorm } = await getCwQueryHelpers(chainId, RPC);
     const h = await getCwExecHelpers(chainId, RPC, owner, signer);
 
-    const { getAllBalances } = sgQueryHelpers;
-    const { sgMultiSend } = sgExecHelpers;
+    const { getBalance, getAllBalances } = sgQueryHelpers;
+    const { sgMultiSend, sgSend } = sgExecHelpers;
 
-    // update config
-    const config = await platfrorm.cwQueryConfig();
+    // replenish balance
+    const { amount: balance } = await getBalance(
+      PLATFORM_CONTRACT.ADDRESS,
+      DENOM
+    );
+    if (Number(balance) < 500_000) {
+      await sgSend(PLATFORM_CONTRACT.ADDRESS, coin(1_000_000, DENOM), gasPrice);
+    }
+
+    // await platfrorm.cwQueryUser(ADDRESS.ADMIN);
+    // await h.platform.cwBuy(1_000, DENOM, gasPrice);
+    // await platfrorm.cwQueryUser(ADDRESS.ADMIN);
+
+    // const res = await h.platform.cwOpen(gasPrice);
+    // const rewards = parseWasmAttribute(res, "coins");
+    // l({ rewards });
+    // await platfrorm.cwQueryUser(ADDRESS.ADMIN);
+
+    // await platfrorm.cwQueryUser(ADDRESS.ADMIN);
+    // try {
+    //   await h.platform.cwOpenMultiple(1, gasPrice);
+    // } catch (error) {
+    //   l(error);
+    // }
+    // await platfrorm.cwQueryUser(ADDRESS.ADMIN);
+
+    // await h.platform.cwBuy(1_000, DENOM, gasPrice);
+    for (let i = 0; i < 10; i++) {
+      const res = await h.platform.cwOpen(gasPrice);
+      const rewards = parseWasmAttribute(res, "coins");
+      l({ rewards });
+      await wait(5_000);
+    }
   } catch (error) {
     l(error);
   }

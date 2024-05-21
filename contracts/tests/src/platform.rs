@@ -1,9 +1,12 @@
 use cw_multi_test::AppResponse;
 use speculoos::assert_that;
 
-use cosmwasm_std::{Decimal, StdResult};
+use cosmwasm_std::{Decimal, StdResult, Uint128};
 
-use loot_box_base::converters::{str_to_dec, u128_to_dec};
+use loot_box_base::{
+    converters::{str_to_dec, u128_to_dec},
+    platform::types::OpeningInfo,
+};
 
 use crate::helpers::{
     platform::PlatformExtension,
@@ -42,7 +45,7 @@ fn parse_attr(res: &AppResponse, key: &str) -> String {
 }
 
 #[test]
-fn opening_stats() -> StdResult<()> {
+fn opening_probability() -> StdResult<()> {
     const BOX_PRICE: u128 = 100;
     const ROUNDS: u128 = 1000;
 
@@ -109,6 +112,46 @@ fn opening_stats() -> StdResult<()> {
     // }
 
     // println!("{:#?}", cumulative_price_list);
+
+    Ok(())
+}
+
+#[test]
+fn opening_stats() -> StdResult<()> {
+    const BOX_PRICE: u128 = 100;
+
+    let mut project = Project::new();
+    project.reset_time();
+
+    project.platform_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
+
+    project.platform_try_buy(ProjectAccount::Alice, 4 * BOX_PRICE, ProjectCoin::Stars)?;
+
+    for _ in 0..3 {
+        project.platform_try_open(ProjectAccount::Alice)?;
+        project.wait(5);
+    }
+
+    let box_stats = project.platform_query_box_stats()?;
+    let user = project.platform_query_user(ProjectAccount::Alice)?;
+
+    let expected_opened = vec![
+        OpeningInfo {
+            box_rewards: Uint128::new(50),
+            opened: Uint128::new(2),
+        },
+        OpeningInfo {
+            box_rewards: Uint128::new(0),
+            opened: Uint128::new(1),
+        },
+    ];
+
+    assert_that(&box_stats.sold.u128()).is_equal_to(4);
+    assert_that(&box_stats.opened).is_equal_to(expected_opened.clone());
+
+    assert_that(&user.bought.u128()).is_equal_to(4);
+    assert_that(&user.boxes.u128()).is_equal_to(1);
+    assert_that(&user.opened).is_equal_to(expected_opened);
 
     Ok(())
 }

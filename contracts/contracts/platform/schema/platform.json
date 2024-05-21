@@ -670,7 +670,7 @@
         "bought",
         "boxes",
         "opened",
-        "opening_block",
+        "opening_date",
         "received",
         "rewards",
         "sent"
@@ -688,7 +688,7 @@
             "$ref": "#/definitions/OpeningInfo"
           }
         },
-        "opening_block": {
+        "opening_date": {
           "type": "integer",
           "format": "uint64",
           "minimum": 0.0
@@ -781,7 +781,7 @@
             "bought",
             "boxes",
             "opened",
-            "opening_block",
+            "opening_date",
             "received",
             "rewards",
             "sent"
@@ -799,7 +799,7 @@
                 "$ref": "#/definitions/OpeningInfo"
               }
             },
-            "opening_block": {
+            "opening_date": {
               "type": "integer",
               "format": "uint64",
               "minimum": 0.0

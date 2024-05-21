@@ -115,7 +115,7 @@ export interface UserInfo {
   bought: Uint128;
   boxes: Uint128;
   opened: OpeningInfo[];
-  opening_block: number;
+  opening_date: number;
   received: Uint128;
   rewards: Uint128;
   sent: Uint128;
