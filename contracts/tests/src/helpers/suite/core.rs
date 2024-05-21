@@ -106,7 +106,7 @@ impl Project {
             }
         }
 
-        // instantiate goplend contracts
+        // instantiate contracts
         let platform_address =
             project.instantiate_platform(platform_code_id, &None, &None, &None, &None);
 

@@ -246,17 +246,17 @@ pub fn try_claim(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response
         Err(ContractError::NotEnoughLiquidity)?;
     }
 
+    let msg = BankMsg::Send {
+        to_address: sender_address.to_string(),
+        amount: coins(user.rewards.u128(), denom),
+    };
+
     balance.pool -= user.rewards;
     balance.rewards -= user.rewards;
     user.rewards = Uint128::zero();
 
     USERS.save(deps.storage, &sender_address, &user)?;
     BALANCE.save(deps.storage, &balance)?;
-
-    let msg = BankMsg::Send {
-        to_address: sender_address.to_string(),
-        amount: coins(user.rewards.u128(), denom),
-    };
 
     Ok(Response::new()
         .add_message(msg)
