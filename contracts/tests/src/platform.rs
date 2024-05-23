@@ -6,7 +6,7 @@ use cosmwasm_std::{Decimal, StdResult, Uint128};
 use loot_box_base::{
     converters::{str_to_dec, u128_to_dec},
     error::ContractError,
-    platform::types::{NftInfo, OpeningInfo},
+    platform::types::{NftInfo, OpeningInfo, WeightInfo},
 };
 
 use crate::helpers::{
@@ -17,20 +17,45 @@ use crate::helpers::{
     },
 };
 
+// 1) aggressive distribution
 // x0 + x1 + x2 + x3 + x4 = 1
-// 0*x0 + 50*x1 + 250*x2 + 500*x3 + 1000*x4 = 80
+// 0*x0 + 50*x1 + 250*x2 + 500*x3 + 1000*x4 = 85
 
 // x0 + x1 + 0.2*x1 + 0.1*x1 + 0.05*x1 = 1
-// 0*x0 + 50*x1 + 50*x1 + 50*x1 + 50*x1 = 80
+// 0*x0 + 50*x1 + 50*x1 + 50*x1 + 50*x1 = 85
 
 // x0 + 1.35*x1 = 1
-// 200*x1 = 80
+// 200*x1 = 85
 
-// x0 = 0.4600
-// x1 = 0.4000
-// x2 = 0.0800
-// x3 = 0.0400
-// x4 = 0.0200
+// x0 = 0.42625
+// x1 = 0.42500
+// x2 = 0.08500
+// x3 = 0.04250
+// x4 = 0.02125
+
+// 0.14875 winning chance
+
+// 2) conservative distribution
+// 0*x0 + 50*x1 + 150*x2 + 200*x3 + 250*x4 = 85
+
+// x0 = 0.24209
+// x1 = 0.42500
+// x2 = 0.14166
+// x3 = 0.10625
+// x4 = 0.08500
+
+// 0.33291 winning chance
+
+// 3) mixed distribution
+// 0*x0 + 50*x1 + 150*x2 + 250*x3 + 1000*x4 = 85
+
+// x0 = 0.32709
+// x1 = 0.42500
+// x2 = 0.14166
+// x3 = 0.08500
+// x4 = 0.02125
+
+// 0.24791 winning chance
 
 fn parse_attr(res: &AppResponse, key: &str) -> Option<String> {
     res.events
@@ -59,6 +84,48 @@ fn opening_probability() -> StdResult<()> {
         (500, "0.04"),
         (1000, "0.02"),
     ];
+
+    // let price_and_weight_list = vec![
+    //     (0, "0.42625"),
+    //     (50, "0.425"),
+    //     (250, "0.085"),
+    //     (500, "0.0425"),
+    //     (1000, "0.02125"),
+    // ];
+
+    // let price_and_weight_list = vec![
+    //     (0, "0.24209"),
+    //     (50, "0.425"),
+    //     (150, "0.14166"),
+    //     (200, "0.10625"),
+    //     (250, "0.085"),
+    // ];
+
+    // let price_and_weight_list = vec![
+    //     (0, "0.32709"),
+    //     (50, "0.425"),
+    //     (150, "0.14166"),
+    //     (250, "0.085"),
+    //     (1000, "0.02125"),
+    // ];
+
+    project.platform_try_update_config(
+        ProjectAccount::Admin,
+        &None,
+        &None,
+        &None,
+        &None,
+        &Some(
+            price_and_weight_list
+                .iter()
+                .map(|(rewards, weight)| WeightInfo {
+                    box_rewards: Uint128::new(rewards.to_owned()),
+                    weight: str_to_dec(weight),
+                })
+                .collect(),
+        ),
+    )?;
+
     let mut stats: Vec<u128> = vec![0; price_and_weight_list.len()];
     let mut price_list: Vec<u128> = vec![];
 
@@ -91,8 +158,6 @@ fn opening_probability() -> StdResult<()> {
         .fold(Decimal::zero(), |acc, (i, cur)| {
             acc + cur * u128_to_dec(price_and_weight_list[i].0)
         });
-    // println!("{:#?}", stats);
-    // println!("{:#?}", math_exp.to_string());
 
     assert_that(&stats).is_equal_to(
         vec!["0.463", "0.388", "0.085", "0.046", "0.018"]
