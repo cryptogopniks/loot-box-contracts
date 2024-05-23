@@ -6,14 +6,14 @@ use cosmwasm_std::{Decimal, StdResult, Uint128};
 use loot_box_base::{
     converters::{str_to_dec, u128_to_dec},
     error::ContractError,
-    platform::types::OpeningInfo,
+    platform::types::{NftInfo, OpeningInfo},
 };
 
 use crate::helpers::{
     platform::PlatformExtension,
     suite::{
         core::{assert_error, Project},
-        types::{ProjectAccount, ProjectCoin},
+        types::{ProjectAccount, ProjectCoin, ProjectNft},
     },
 };
 
@@ -32,90 +32,89 @@ use crate::helpers::{
 // x3 = 0.0400
 // x4 = 0.0200
 
-fn parse_attr(res: &AppResponse, key: &str) -> String {
+fn parse_attr(res: &AppResponse, key: &str) -> Option<String> {
     res.events
         .iter()
         .find(|x| x.attributes.iter().any(|y| y.key == key))
-        .unwrap()
-        .attributes
-        .iter()
-        .find(|x| x.key == key)
-        .unwrap()
-        .value
-        .to_owned()
+        .and_then(|x| {
+            x.attributes
+                .iter()
+                .find(|y| y.key == key)
+                .map(|z| z.value.to_owned())
+        })
 }
 
-// #[test]
-// fn opening_probability() -> StdResult<()> {
-//     const BOX_PRICE: u128 = 100;
-//     const ROUNDS: u128 = 1000;
+#[test]
+fn opening_probability() -> StdResult<()> {
+    const BOX_PRICE: u128 = 100;
+    const ROUNDS: u128 = 1000;
 
-//     let mut project = Project::new();
-//     project.reset_time();
+    let mut project = Project::new();
+    project.reset_time();
 
-//     let price_and_weight_list = vec![
-//         (0, "0.46"),
-//         (50, "0.40"),
-//         (250, "0.08"),
-//         (500, "0.04"),
-//         (1000, "0.02"),
-//     ];
-//     let mut stats: Vec<u128> = vec![0; price_and_weight_list.len()];
-//     let mut price_list: Vec<u128> = vec![];
+    let price_and_weight_list = vec![
+        (0, "0.46"),
+        (50, "0.40"),
+        (250, "0.08"),
+        (500, "0.04"),
+        (1000, "0.02"),
+    ];
+    let mut stats: Vec<u128> = vec![0; price_and_weight_list.len()];
+    let mut price_list: Vec<u128> = vec![];
 
-//     project.platform_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
+    project.platform_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
 
-//     for _ in 0..ROUNDS {
-//         project.platform_try_buy(ProjectAccount::Alice, BOX_PRICE, ProjectCoin::Stars)?;
-//         let res = project.platform_try_open(ProjectAccount::Alice)?;
+    for _ in 0..ROUNDS {
+        project.platform_try_buy(ProjectAccount::Alice, BOX_PRICE, ProjectCoin::Stars)?;
+        let res = project.platform_try_open(ProjectAccount::Alice)?;
 
-//         let price = parse_attr(&res, "coins").parse::<u128>().unwrap();
-//         price_list.push(price);
+        let price = parse_attr(&res, "coins").unwrap().parse::<u128>().unwrap();
+        price_list.push(price);
 
-//         let idx = price_and_weight_list
-//             .clone()
-//             .into_iter()
-//             .position(|(p, _w)| p == price)
-//             .unwrap();
-//         stats[idx] += 1;
+        let idx = price_and_weight_list
+            .clone()
+            .into_iter()
+            .position(|(p, _w)| p == price)
+            .unwrap();
+        stats[idx] += 1;
 
-//         project.wait(5);
-//     }
+        project.wait(5);
+    }
 
-//     let stats = stats
-//         .into_iter()
-//         .map(|x| u128_to_dec(x) / u128_to_dec(ROUNDS))
-//         .collect::<Vec<Decimal>>();
-//     let math_exp = stats
-//         .iter()
-//         .enumerate()
-//         .fold(Decimal::zero(), |acc, (i, cur)| {
-//             acc + cur * u128_to_dec(price_and_weight_list[i].0)
-//         });
-//     // println!("{:#?}", stats);
-//     // println!("{:#?}", math_exp.to_string());
+    let stats = stats
+        .into_iter()
+        .map(|x| u128_to_dec(x) / u128_to_dec(ROUNDS))
+        .collect::<Vec<Decimal>>();
+    let math_exp = stats
+        .iter()
+        .enumerate()
+        .fold(Decimal::zero(), |acc, (i, cur)| {
+            acc + cur * u128_to_dec(price_and_weight_list[i].0)
+        });
+    // println!("{:#?}", stats);
+    // println!("{:#?}", math_exp.to_string());
 
-//     assert_that(&stats).is_equal_to(
-//         vec!["0.463", "0.388", "0.085", "0.046", "0.018"]
-//             .into_iter()
-//             .map(|x| str_to_dec(x))
-//             .collect::<Vec<Decimal>>(),
-//     );
-//     assert_that(&math_exp.to_string().as_str()).is_equal_to("81.65");
+    assert_that(&stats).is_equal_to(
+        vec!["0.463", "0.388", "0.085", "0.046", "0.018"]
+            .into_iter()
+            .map(|x| str_to_dec(x))
+            .collect::<Vec<Decimal>>(),
+    );
+    assert_that(&math_exp.to_string().as_str()).is_equal_to("81.65");
 
-//     // // cumulative stats
-//     // let mut cumulative_price: i128 = 0;
-//     // let mut cumulative_price_list: Vec<i128> = vec![];
+    // // cumulative stats
+    // let mut cumulative_price: i128 = 0;
+    // let mut cumulative_price_list: Vec<i128> = vec![];
 
-//     // for price in price_list {
-//     //     cumulative_price = cumulative_price + (BOX_PRICE as i128) - (price as i128);
-//     //     cumulative_price_list.push(cumulative_price);
-//     // }
+    // for price in price_list {
+    //     cumulative_price = cumulative_price + (BOX_PRICE as i128) - (price as i128);
+    //     cumulative_price_list.push(cumulative_price);
+    // }
 
-//     // println!("{:#?}", cumulative_price_list);
+    // println!("{:#?}", cumulative_price_list);
 
-//     Ok(())
-// }
+    Ok(())
+}
 
 #[test]
 fn opening_stats() -> StdResult<()> {
@@ -168,7 +167,10 @@ fn claim_default() -> StdResult<()> {
 
     project.wait(11);
     let res = project.platform_try_open(ProjectAccount::Alice)?;
-    let price = parse_attr(&res, "rewards").parse::<u128>().unwrap();
+    let price = parse_attr(&res, "rewards")
+        .unwrap()
+        .parse::<u128>()
+        .unwrap();
     assert_that(&price).is_equal_to(500);
 
     // check rewards
@@ -242,4 +244,67 @@ fn send_and_open_twice_same_time() -> StdResult<()> {
     Ok(())
 }
 
-// nft
+#[test]
+fn deposit_win_withdraw_nft() -> StdResult<()> {
+    const BOX_PRICE: u128 = 100;
+
+    let mut project = Project::new();
+    project.reset_time();
+
+    project.platform_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
+    project.transfer_nft(
+        ProjectAccount::Alice,
+        ProjectAccount::Admin,
+        ProjectNft::Gopniks,
+        "1",
+    );
+    project.transfer_nft(
+        ProjectAccount::Alice,
+        ProjectAccount::Admin,
+        ProjectNft::Gopniks,
+        "2",
+    );
+    project.increase_allowances_nft(
+        ProjectAccount::Admin,
+        project.get_platform_address(),
+        ProjectNft::Gopniks,
+    );
+    project.platform_try_deposit_nft(
+        ProjectAccount::Admin,
+        &[NftInfo {
+            collection: ProjectNft::Gopniks.to_string(),
+            token_id: "1".to_string(),
+            price: Uint128::new(50),
+        }],
+    )?;
+    project.platform_try_deposit_nft(
+        ProjectAccount::Admin,
+        &[NftInfo {
+            collection: ProjectNft::Gopniks.to_string(),
+            token_id: "2".to_string(),
+            price: Uint128::new(50),
+        }],
+    )?;
+
+    project.platform_try_buy(ProjectAccount::Kate, 100 * BOX_PRICE, ProjectCoin::Stars)?;
+
+    project.wait(7);
+    let res = project.platform_try_open(ProjectAccount::Kate)?;
+    let token_id = parse_attr(&res, "token_id").unwrap();
+
+    let (collection, cw721::TokensResponse { tokens }) =
+        &project.query_all_nft(ProjectAccount::Kate)[0];
+
+    assert_that(&token_id).is_equal_to("1".to_string());
+    assert_that(&collection.to_string()).is_equal_to(ProjectNft::Gopniks.to_string());
+    assert_that(&tokens.contains(&"1".to_string())).is_equal_to(true);
+
+    let nft_info_list = project.platform_query_balance()?.nft_pool;
+
+    project.platform_try_withdraw_nft(ProjectAccount::Owner, &nft_info_list)?;
+    let (_collection, cw721::TokensResponse { tokens }) =
+        &project.query_all_nft(ProjectAccount::Owner)[0];
+    assert_that(&tokens.contains(&"2".to_string())).is_equal_to(true);
+
+    Ok(())
+}

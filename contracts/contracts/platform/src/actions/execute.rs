@@ -556,7 +556,7 @@ pub fn try_withdraw_nft(
         Err(ContractError::NftDuplication)?;
     }
 
-    // check if nfts aren't belong users
+    // check if nfts are available
     if nft_info_list.iter().any(|x| !balance.nft_pool.contains(x)) {
         Err(ContractError::NftIsNotFound)?;
     }
@@ -641,7 +641,7 @@ pub fn try_update_nft_price(
         Err(ContractError::ImproperNftPrice)?;
     }
 
-    // check if nfts aren't belong users
+    // check if nfts are available
     if nft_info_list.iter().any(|x| !balance.nft_pool.contains(x)) {
         Err(ContractError::NftIsNotFound)?;
     }
