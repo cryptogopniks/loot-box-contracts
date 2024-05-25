@@ -276,7 +276,7 @@ impl PlatformExtension for Project {
                 self.get_platform_address(),
                 &ExecuteMsg::WithdrawNft {
                     nft_info_list: nft_info_list
-                        .into_iter()
+                        .iter()
                         .map(|x| NftInfo {
                             collection: x.collection.to_string(),
                             token_id: x.token_id.clone(),
@@ -301,7 +301,7 @@ impl PlatformExtension for Project {
                 self.get_platform_address(),
                 &ExecuteMsg::UpdateNftPrice {
                     nft_info_list: nft_info_list
-                        .into_iter()
+                        .iter()
                         .map(|x| NftInfo {
                             collection: x.collection.to_string(),
                             token_id: x.token_id.clone(),

@@ -129,48 +129,50 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
         .last()
         .unwrap_or('0')
         .to_string()
-        .parse::<u128>()
+        .parse::<u8>()
         .unwrap_or_default();
 
-    if same_price_nft.is_some() && last_digit % 2 == 1 {
-        // try to send nft
-        let x = same_price_nft.unwrap();
-        balance.nft_pool.retain(|y| y != &x);
+    match same_price_nft {
+        Some(x) if last_digit % 2 == 1 => {
+            // send nft
+            balance.nft_pool.retain(|y| y != &x);
 
-        let cw721_msg = cw721::Cw721ExecuteMsg::TransferNft {
-            recipient: sender_address.to_string(),
-            token_id: x.token_id.to_string(),
-        };
+            let cw721_msg = cw721::Cw721ExecuteMsg::TransferNft {
+                recipient: sender_address.to_string(),
+                token_id: x.token_id.to_string(),
+            };
 
-        let msg = WasmMsg::Execute {
-            contract_addr: x.collection.to_string(),
-            msg: to_json_binary(&cw721_msg)?,
-            funds: vec![],
-        };
+            let msg = WasmMsg::Execute {
+                contract_addr: x.collection.to_string(),
+                msg: to_json_binary(&cw721_msg)?,
+                funds: vec![],
+            };
 
-        response = response
-            .add_message(msg)
-            .add_attribute("nft", rewards.u128().to_string())
-            .add_attribute("collection", x.collection.to_string())
-            .add_attribute("token_id", x.token_id);
-    } else {
-        // send rewards if balance is enough else accumulate rewards
-        if rewards <= balance.pool {
-            balance.pool -= rewards;
+            response = response
+                .add_message(msg)
+                .add_attribute("nft", rewards.u128().to_string())
+                .add_attribute("collection", x.collection.to_string())
+                .add_attribute("token_id", x.token_id);
+        }
+        _ => {
+            // send rewards if balance is enough else accumulate rewards
+            if rewards <= balance.pool {
+                balance.pool -= rewards;
 
-            if !rewards.is_zero() {
-                response = response.add_message(BankMsg::Send {
-                    to_address: sender_address.to_string(),
-                    amount: coins(rewards.u128(), denom),
-                })
+                if !rewards.is_zero() {
+                    response = response.add_message(BankMsg::Send {
+                        to_address: sender_address.to_string(),
+                        amount: coins(rewards.u128(), denom),
+                    })
+                }
+
+                response = response.add_attribute("coins", rewards.u128().to_string());
+            } else {
+                balance.rewards += rewards;
+                user.rewards += rewards;
+
+                response = response.add_attribute("rewards", rewards.u128().to_string());
             }
-
-            response = response.add_attribute("coins", rewards.u128().to_string());
-        } else {
-            balance.rewards += rewards;
-            user.rewards += rewards;
-
-            response = response.add_attribute("rewards", rewards.u128().to_string());
         }
     }
 
