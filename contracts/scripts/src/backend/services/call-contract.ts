@@ -56,14 +56,16 @@ async function main() {
     const { getBalance, getAllBalances } = sgQueryHelpers;
     const { sgMultiSend, sgSend } = sgExecHelpers;
 
-    // replenish balance
-    const { amount: balance } = await getBalance(
-      PLATFORM_CONTRACT.ADDRESS,
-      DENOM
-    );
-    if (Number(balance) < 500_000) {
-      await sgSend(PLATFORM_CONTRACT.ADDRESS, coin(1_000_000, DENOM), gasPrice);
-    }
+    await platfrorm.cwQueryConfig();
+
+    // // replenish balance
+    // const { amount: balance } = await getBalance(
+    //   PLATFORM_CONTRACT.ADDRESS,
+    //   DENOM
+    // );
+    // if (Number(balance) < 500_000) {
+    //   await sgSend(PLATFORM_CONTRACT.ADDRESS, coin(1_000_000, DENOM), gasPrice);
+    // }
 
     // await platfrorm.cwQueryUser(ADDRESS.ADMIN);
     // await h.platform.cwBuy(1_000, DENOM, gasPrice);
@@ -83,12 +85,12 @@ async function main() {
     // await platfrorm.cwQueryUser(ADDRESS.ADMIN);
 
     // await h.platform.cwBuy(1_000, DENOM, gasPrice);
-    for (let i = 0; i < 10; i++) {
-      const res = await h.platform.cwOpen(gasPrice);
-      const rewards = parseWasmAttribute(res, "coins");
-      l({ rewards });
-      await wait(5_000);
-    }
+    // for (let i = 0; i < 10; i++) {
+    //   const res = await h.platform.cwOpen(gasPrice);
+    //   const rewards = parseWasmAttribute(res, "coins");
+    //   l({ rewards });
+    //   await wait(1_000);
+    // }
   } catch (error) {
     l(error);
   }
