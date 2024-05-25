@@ -71,13 +71,13 @@ pub trait PlatformExtension {
     fn platform_try_withdraw_nft(
         &mut self,
         sender: ProjectAccount,
-        nft_info_list: &[NftInfo<String>],
+        nft_info_list: &[NftInfo<impl ToString>],
     ) -> StdResult<AppResponse>;
 
     fn platform_try_update_nft_price(
         &mut self,
         sender: ProjectAccount,
-        nft_info_list: &[NftInfo<String>],
+        nft_info_list: &[NftInfo<impl ToString>],
     ) -> StdResult<AppResponse>;
 
     fn platform_query_config(&self) -> StdResult<Config>;
@@ -268,14 +268,21 @@ impl PlatformExtension for Project {
     fn platform_try_withdraw_nft(
         &mut self,
         sender: ProjectAccount,
-        nft_info_list: &[NftInfo<String>],
+        nft_info_list: &[NftInfo<impl ToString>],
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
                 sender.into(),
                 self.get_platform_address(),
                 &ExecuteMsg::WithdrawNft {
-                    nft_info_list: nft_info_list.to_owned(),
+                    nft_info_list: nft_info_list
+                        .into_iter()
+                        .map(|x| NftInfo {
+                            collection: x.collection.to_string(),
+                            token_id: x.token_id.clone(),
+                            price: x.price,
+                        })
+                        .collect(),
                 },
                 &[],
             )
@@ -286,14 +293,21 @@ impl PlatformExtension for Project {
     fn platform_try_update_nft_price(
         &mut self,
         sender: ProjectAccount,
-        nft_info_list: &[NftInfo<String>],
+        nft_info_list: &[NftInfo<impl ToString>],
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
                 sender.into(),
                 self.get_platform_address(),
                 &ExecuteMsg::UpdateNftPrice {
-                    nft_info_list: nft_info_list.to_owned(),
+                    nft_info_list: nft_info_list
+                        .into_iter()
+                        .map(|x| NftInfo {
+                            collection: x.collection.to_string(),
+                            token_id: x.token_id.clone(),
+                            price: x.price,
+                        })
+                        .collect(),
                 },
                 &[],
             )

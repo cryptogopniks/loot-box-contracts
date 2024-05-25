@@ -246,17 +246,17 @@ pub fn try_claim(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response
         Err(ContractError::NotEnoughLiquidity)?;
     }
 
+    let msg = BankMsg::Send {
+        to_address: sender_address.to_string(),
+        amount: coins(user.rewards.u128(), denom),
+    };
+
     balance.pool -= user.rewards;
     balance.rewards -= user.rewards;
     user.rewards = Uint128::zero();
 
     USERS.save(deps.storage, &sender_address, &user)?;
     BALANCE.save(deps.storage, &balance)?;
-
-    let msg = BankMsg::Send {
-        to_address: sender_address.to_string(),
-        amount: coins(user.rewards.u128(), denom),
-    };
 
     Ok(Response::new()
         .add_message(msg)
@@ -556,7 +556,7 @@ pub fn try_withdraw_nft(
         Err(ContractError::NftDuplication)?;
     }
 
-    // check if nfts aren't belong users
+    // check if nfts are available
     if nft_info_list.iter().any(|x| !balance.nft_pool.contains(x)) {
         Err(ContractError::NftIsNotFound)?;
     }
@@ -641,7 +641,7 @@ pub fn try_update_nft_price(
         Err(ContractError::ImproperNftPrice)?;
     }
 
-    // check if nfts aren't belong users
+    // check if nfts are available
     if nft_info_list.iter().any(|x| !balance.nft_pool.contains(x)) {
         Err(ContractError::NftIsNotFound)?;
     }

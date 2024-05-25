@@ -37,6 +37,15 @@ export const CHAIN_CONFIG: ChainConfig = {
               LABEL: "platform",
               INIT_MSG: toJson<PlatformTypes.InstantiateMsg>({
                 worker: ADDRESS.WORKER,
+                box_price: `${100_000_000}`,
+                distribution: [
+                  { box_rewards: `${0}`, weight: "0.282465" },
+                  { box_rewards: `${50_000_000}`, weight: "0.3995" },
+                  { box_rewards: `${150_000_000}`, weight: "0.13316" },
+                  { box_rewards: `${200_000_000}`, weight: "0.099875" },
+                  { box_rewards: `${250_000_000}`, weight: "0.0799" },
+                  { box_rewards: `${1_000_000_000}`, weight: "0.0051" },
+                ],
               }),
               MIGRATE_MSG: toJson<PlatformTypes.MigrateMsg>({
                 version: "1.0.0",

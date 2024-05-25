@@ -11,11 +11,14 @@ use loot_box_base::{
     error::parse_err,
 };
 
-use crate::helpers::suite::{
-    codes::WithCodes,
-    types::{
-        GetDecimals, ProjectAccount, ProjectAsset, ProjectCoin, ProjectNft, ProjectToken,
-        WrappedResponse, DEFAULT_DECIMALS,
+use crate::helpers::{
+    platform::PlatformExtension,
+    suite::{
+        codes::WithCodes,
+        types::{
+            GetDecimals, ProjectAccount, ProjectAsset, ProjectCoin, ProjectNft, ProjectToken,
+            WrappedResponse, DEFAULT_DECIMALS,
+        },
     },
 };
 
@@ -106,7 +109,7 @@ impl Project {
             }
         }
 
-        // instantiate goplend contracts
+        // instantiate contracts
         let platform_address =
             project.instantiate_platform(platform_code_id, &None, &None, &None, &None);
 
@@ -123,7 +126,18 @@ impl Project {
         };
 
         // prepare contracts
-        //
+
+        // set worker
+        project
+            .platform_try_update_config(
+                ProjectAccount::Admin,
+                &None,
+                &Some(ProjectAccount::Owner),
+                &None,
+                &None,
+                &None,
+            )
+            .unwrap();
 
         project
     }
