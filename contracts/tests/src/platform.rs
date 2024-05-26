@@ -164,7 +164,7 @@ fn opening_probability() -> StdResult<()> {
     assert_that(&stats).is_equal_to(
         vec!["0.463", "0.388", "0.085", "0.046", "0.018"]
             .into_iter()
-            .map(|x| str_to_dec(x))
+            .map(str_to_dec)
             .collect::<Vec<Decimal>>(),
     );
     assert_that(&math_exp.to_string().as_str()).is_equal_to("81.65");
