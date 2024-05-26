@@ -2,15 +2,14 @@ use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, Uint128};
 use cw2::set_contract_version;
 
 use loot_box_base::{
-    converters::str_to_dec,
     error::ContractError,
-    platform::{
+    treasury::{
         msg::InstantiateMsg,
         state::{
-            BOX_PRICE_DEFAULT, BOX_STATS, CONFIG, CONTRACT_NAME, DENOM_DEFAULT, IS_LOCKED,
-            MEAN_WEIGHT, NORMALIZED_DECIMAL, TRANSFER_ADMIN_STATE,
+            BALANCE, CONFIG, CONTRACT_NAME, IS_LOCKED, PLATFORM_CODE_ID, PLATFORM_LIST,
+            REMOVED_PLATFORM_LIST, TRANSFER_ADMIN_STATE,
         },
-        types::{BoxStats, Config, TransferAdminState, WeightInfo},
+        types::{Balance, Config, TransferAdminState},
     },
 };
 
@@ -27,15 +26,6 @@ pub fn try_instantiate(
     let sender = &info.sender;
     let block_time = env.block.time.seconds();
 
-    // 20 % platform fee
-    let distribution_default = vec![
-        (0, "0.46"),
-        (50, "0.40"),
-        (250, "0.08"),
-        (500, "0.04"),
-        (1000, "0.02"),
-    ];
-
     CONFIG.save(
         deps.storage,
         &Config {
@@ -45,18 +35,8 @@ pub fn try_instantiate(
                 .map(|x| deps.api.addr_validate(&x))
                 .transpose()
                 .unwrap_or(Some(sender.to_owned())),
-            treasury: deps.api.addr_validate(&msg.treasury)?,
-            box_price: msg.box_price.unwrap_or(Uint128::new(BOX_PRICE_DEFAULT)),
-            denom: msg.denom.unwrap_or(DENOM_DEFAULT.to_string()),
-            distribution: msg.distribution.unwrap_or(
-                distribution_default
-                    .into_iter()
-                    .map(|(rewards, weight)| WeightInfo {
-                        box_rewards: Uint128::new(rewards),
-                        weight: str_to_dec(weight),
-                    })
-                    .collect(),
-            ),
+            platform_code_id: Some(msg.platform_code_id.unwrap_or(PLATFORM_CODE_ID)),
+            denom_list: msg.denom_list.unwrap_or_default(),
         },
     )?;
 
@@ -69,9 +49,17 @@ pub fn try_instantiate(
         },
     )?;
 
-    BOX_STATS.save(deps.storage, &BoxStats::default())?;
+    let mut balance = Balance::default();
+    balance.pool = CONFIG
+        .load(deps.storage)?
+        .denom_list
+        .into_iter()
+        .map(|x| (Uint128::zero(), x))
+        .collect();
 
-    NORMALIZED_DECIMAL.save(deps.storage, &str_to_dec(MEAN_WEIGHT))?;
+    BALANCE.save(deps.storage, &balance)?;
+    PLATFORM_LIST.save(deps.storage, &vec![])?;
+    REMOVED_PLATFORM_LIST.save(deps.storage, &vec![])?;
 
     Ok(Response::new().add_attribute("action", "try_instantiate"))
 }

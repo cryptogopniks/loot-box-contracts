@@ -45,3 +45,4 @@ hashing-helper = { path = "./packages/hashing-helper" }
 
 # contracts
 platform = { path = "./contracts/platform" }
+treasury = { path = "./contracts/treasury" }

@@ -43,22 +43,6 @@ pub fn execute(
 
         ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
 
-        ExecuteMsg::Deposit {} => e::try_deposit(deps, env, info),
-
-        ExecuteMsg::Withdraw { amount } => e::try_withdraw(deps, env, info, amount),
-
-        ExecuteMsg::DepositNft { nft_info_list } => {
-            e::try_deposit_nft(deps, env, info, nft_info_list)
-        }
-
-        ExecuteMsg::WithdrawNft { nft_info_list } => {
-            e::try_withdraw_nft(deps, env, info, nft_info_list)
-        }
-
-        ExecuteMsg::UpdateNftPrice { nft_info_list } => {
-            e::try_update_nft_price(deps, env, info, nft_info_list)
-        }
-
         ExecuteMsg::UpdateConfig {
             admin,
             worker,
@@ -89,8 +73,6 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::QueryConfig {} => to_json_binary(&q::query_config(deps, env)?),
 
         QueryMsg::QueryBoxStats {} => to_json_binary(&q::query_box_stats(deps, env)?),
-
-        QueryMsg::QueryBalance {} => to_json_binary(&q::query_balance(deps, env)?),
 
         QueryMsg::QueryUser { address } => to_json_binary(&q::query_user(deps, env, address)?),
 

@@ -1,9 +1,9 @@
 use cosmwasm_std::{Addr, Decimal};
 use cw_storage_plus::{Item, Map};
 
-use crate::platform::types::{Balance, BoxStats, Config, TransferAdminState, UserInfo};
+use crate::platform::types::{BoxStats, Config, TransferAdminState, UserInfo};
 
-pub const CONTRACT_NAME: &str = "cryptogopniks-loot-box";
+pub const CONTRACT_NAME: &str = "cryptogopniks-loot-box-platform";
 
 pub const MEAN_WEIGHT: &str = "0.5";
 pub const BOX_PRICE_DEFAULT: u128 = 100;
@@ -20,7 +20,6 @@ pub const TRANSFER_ADMIN_STATE: Item<TransferAdminState> = Item::new("transfer a
 pub const CONFIG: Item<Config> = Item::new("config");
 
 pub const BOX_STATS: Item<BoxStats> = Item::new("box stats");
-pub const BALANCE: Item<Balance> = Item::new("balance");
 
 pub const NORMALIZED_DECIMAL: Item<Decimal> = Item::new("normalized decimal");
 

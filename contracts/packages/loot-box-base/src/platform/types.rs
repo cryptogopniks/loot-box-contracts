@@ -5,6 +5,7 @@ use cosmwasm_std::{Addr, Decimal, Uint128};
 pub struct Config {
     pub admin: Addr,          // contract maintainer
     pub worker: Option<Addr>, // app customer
+    pub treasury: Addr,
 
     pub box_price: Uint128,
     pub denom: String,
@@ -28,22 +29,6 @@ pub struct BoxStats {
 pub struct OpeningInfo {
     pub box_rewards: Uint128,
     pub opened: Uint128,
-}
-
-#[derive(Default)]
-#[cw_serde]
-pub struct Balance {
-    pub pool: Uint128,
-    pub nft_pool: Vec<NftInfo<Addr>>,
-    pub rewards: Uint128,
-    pub deposited: Uint128,
-}
-
-#[cw_serde]
-pub struct NftInfo<A: ToString> {
-    pub collection: A,
-    pub token_id: String,
-    pub price: Uint128,
 }
 
 #[derive(Default)]
