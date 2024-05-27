@@ -17,11 +17,20 @@
             {
               "WASM": "platform.wasm",
               "LABEL": "platform",
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"box_price\":\"100000000\",\"distribution\":[{\"box_rewards\":\"0\",\"weight\":\"0.282465\"},{\"box_rewards\":\"50000000\",\"weight\":\"0.3995\"},{\"box_rewards\":\"150000000\",\"weight\":\"0.13316\"},{\"box_rewards\":\"200000000\",\"weight\":\"0.099875\"},{\"box_rewards\":\"250000000\",\"weight\":\"0.0799\"},{\"box_rewards\":\"1000000000\",\"weight\":\"0.0051\"}]}",
+              "INIT_MSG": "{}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{}}",
-              "CODE": 4192,
-              "ADDRESS": "stars1ghkn3mxq79r0v5arsegevf5aerv9ptdx3x8q2tvms6z9zdmk0p7qnu225y"
+              "CODE": 4193,
+              "ADDRESS": ""
+            },
+            {
+              "WASM": "treasury.wasm",
+              "LABEL": "treasury",
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"platform_code_id\":4193}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{}}",
+              "CODE": 4194,
+              "ADDRESS": "stars1cjakmjf746sjwpmhn5swn6j3ttv4hradg5sl2ucam6uc2zq70v8s0kxje6"
             }
           ],
           "IBC": []
@@ -35,17 +44,7 @@
           ],
           "GAS_PRICE_AMOUNT": 1.1,
           "STORE_CODE_GAS_MULTIPLIER": 19.5,
-          "CONTRACTS": [
-            {
-              "WASM": "platform.wasm",
-              "LABEL": "platform",
-              "INIT_MSG": "{}",
-              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
-              "UPDATE_MSG": "{}",
-              "CODE": 0,
-              "ADDRESS": ""
-            }
-          ],
+          "CONTRACTS": [],
           "IBC": []
         }
       ]

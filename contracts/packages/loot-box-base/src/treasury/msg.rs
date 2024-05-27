@@ -2,7 +2,7 @@ use cosmwasm_schema::{cw_serde, QueryResponses};
 
 use cosmwasm_std::Uint128;
 
-use crate::{platform, treasury::types::NftInfo};
+use crate::{platform::types::WeightInfo, treasury::types::NftInfo};
 
 #[cw_serde]
 pub struct MigrateMsg {
@@ -42,7 +42,9 @@ pub enum ExecuteMsg {
 
     // admin
     CreatePlatform {
-        inst_msg: platform::msg::InstantiateMsg,
+        box_price: Uint128,
+        denom: String,
+        distribution: Option<Vec<WeightInfo>>,
     },
 
     AddPlatform {

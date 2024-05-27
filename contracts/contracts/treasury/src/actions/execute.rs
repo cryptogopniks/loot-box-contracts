@@ -263,12 +263,20 @@ pub fn try_create_platform(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    mut inst_msg: platform::msg::InstantiateMsg,
+    box_price: Uint128,
+    denom: String,
+    distribution: Option<Vec<platform::types::WeightInfo>>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
-    inst_msg.treasury = env.contract.address.to_string();
+    let inst_msg = platform::msg::InstantiateMsg {
+        worker: CONFIG.load(deps.storage)?.worker.map(|x| x.to_string()),
+        treasury: env.contract.address.to_string(),
+        box_price: Some(box_price),
+        denom: Some(denom),
+        distribution,
+    };
 
     let msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Instantiate {
         admin: Some(sender_address.to_string()),

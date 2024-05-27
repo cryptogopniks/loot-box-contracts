@@ -50,47 +50,34 @@ async function main() {
     const sgQueryHelpers = await getSgQueryHelpers(RPC);
     const sgExecHelpers = await getSgExecHelpers(RPC, owner, signer);
 
-    const { utils, platfrorm } = await getCwQueryHelpers(chainId, RPC);
+    const { utils, treasury } = await getCwQueryHelpers(chainId, RPC);
     const h = await getCwExecHelpers(chainId, RPC, owner, signer);
 
     const { getBalance, getAllBalances } = sgQueryHelpers;
     const { sgMultiSend, sgSend } = sgExecHelpers;
 
-    await platfrorm.cwQueryConfig();
+    await treasury.cwQueryConfig();
 
-    // // replenish balance
-    // const { amount: balance } = await getBalance(
-    //   PLATFORM_CONTRACT.ADDRESS,
-    //   DENOM
-    // );
-    // if (Number(balance) < 500_000) {
-    //   await sgSend(PLATFORM_CONTRACT.ADDRESS, coin(1_000_000, DENOM), gasPrice);
-    // }
+    await h.treasury.cwCreatePlatform(
+      {
+        boxPrice: 100_000_000,
+        denom: DENOM,
+        distribution: [
+          { box_rewards: `${0}`, weight: "0.282465" },
+          { box_rewards: `${50_000_000}`, weight: "0.3995" },
+          { box_rewards: `${150_000_000}`, weight: "0.13316" },
+          { box_rewards: `${200_000_000}`, weight: "0.099875" },
+          { box_rewards: `${250_000_000}`, weight: "0.0799" },
+          { box_rewards: `${1_000_000_000}`, weight: "0.0051" },
+        ],
+      },
+      gasPrice
+    );
 
-    // await platfrorm.cwQueryUser(ADDRESS.ADMIN);
-    // await h.platform.cwBuy(1_000, DENOM, gasPrice);
-    // await platfrorm.cwQueryUser(ADDRESS.ADMIN);
-
-    // const res = await h.platform.cwOpen(gasPrice);
-    // const rewards = parseWasmAttribute(res, "coins");
-    // l({ rewards });
-    // await platfrorm.cwQueryUser(ADDRESS.ADMIN);
-
-    // await platfrorm.cwQueryUser(ADDRESS.ADMIN);
-    // try {
-    //   await h.platform.cwOpenMultiple(1, gasPrice);
-    // } catch (error) {
-    //   l(error);
-    // }
-    // await platfrorm.cwQueryUser(ADDRESS.ADMIN);
-
-    // await h.platform.cwBuy(1_000, DENOM, gasPrice);
-    // for (let i = 0; i < 10; i++) {
-    //   const res = await h.platform.cwOpen(gasPrice);
-    //   const rewards = parseWasmAttribute(res, "coins");
-    //   l({ rewards });
-    //   await wait(1_000);
-    // }
+    const [platformAddress] = await treasury.cwQueryPlatformList();
+    const platformConfig = await (
+      await getCwQueryHelpers(chainId, RPC, platformAddress)
+    ).platfrorm.cwQueryConfig();
   } catch (error) {
     l(error);
   }

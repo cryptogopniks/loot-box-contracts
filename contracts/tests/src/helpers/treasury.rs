@@ -51,7 +51,9 @@ pub trait TreasuryExtension {
     fn treasury_try_create_platform(
         &mut self,
         sender: ProjectAccount,
-        inst_msg: &platform::msg::InstantiateMsg,
+        box_price: u128,
+        denom: ProjectCoin,
+        distribution: &Option<Vec<platform::types::WeightInfo>>,
     ) -> StdResult<AppResponse>;
 
     fn treasury_try_add_platform(
@@ -220,14 +222,18 @@ impl TreasuryExtension for Project {
     fn treasury_try_create_platform(
         &mut self,
         sender: ProjectAccount,
-        inst_msg: &platform::msg::InstantiateMsg,
+        box_price: u128,
+        denom: ProjectCoin,
+        distribution: &Option<Vec<platform::types::WeightInfo>>,
     ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
                 sender.into(),
                 self.get_treasury_address(),
                 &ExecuteMsg::CreatePlatform {
-                    inst_msg: inst_msg.to_owned(),
+                    box_price: Uint128::new(box_price),
+                    denom: denom.to_string(),
+                    distribution: distribution.to_owned(),
                 },
                 &[],
             )

@@ -6,10 +6,7 @@ use cosmwasm_std::{Decimal, StdResult, Uint128};
 use loot_box_base::{
     converters::{str_to_dec, u128_to_dec},
     error::ContractError,
-    platform::{
-        msg::InstantiateMsg,
-        types::{OpeningInfo, WeightInfo},
-    },
+    platform::types::{OpeningInfo, WeightInfo},
     treasury::types::NftInfo,
 };
 
@@ -119,21 +116,17 @@ fn opening_probability() -> StdResult<()> {
     // create platform
     project.treasury_try_create_platform(
         ProjectAccount::Admin,
-        &InstantiateMsg {
-            worker: Some(ProjectAccount::Owner.to_string()),
-            treasury: project.get_treasury_address().to_string(),
-            box_price: Some(Uint128::new(100)),
-            denom: Some(ProjectCoin::Stars.to_string()),
-            distribution: Some(
-                price_and_weight_list
-                    .iter()
-                    .map(|(rewards, weight)| WeightInfo {
-                        box_rewards: Uint128::new(rewards.to_owned()),
-                        weight: str_to_dec(weight),
-                    })
-                    .collect(),
-            ),
-        },
+        100,
+        ProjectCoin::Stars,
+        &Some(
+            price_and_weight_list
+                .iter()
+                .map(|(rewards, weight)| WeightInfo {
+                    box_rewards: Uint128::new(rewards.to_owned()),
+                    weight: str_to_dec(weight),
+                })
+                .collect(),
+        ),
     )?;
     let platform_address = &project.treasury_query_platform_list()?[0];
 
@@ -205,16 +198,7 @@ fn opening_stats() -> StdResult<()> {
     project.reset_time();
 
     // create platform
-    project.treasury_try_create_platform(
-        ProjectAccount::Admin,
-        &InstantiateMsg {
-            worker: Some(ProjectAccount::Owner.to_string()),
-            treasury: project.get_treasury_address().to_string(),
-            box_price: Some(Uint128::new(100)),
-            denom: Some(ProjectCoin::Stars.to_string()),
-            distribution: None,
-        },
-    )?;
+    project.treasury_try_create_platform(ProjectAccount::Admin, 100, ProjectCoin::Stars, &None)?;
     let platform_address = &project.treasury_query_platform_list()?[0];
 
     project.treasury_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
@@ -263,16 +247,7 @@ fn claim_default() -> StdResult<()> {
     project.reset_time();
 
     // create platform
-    project.treasury_try_create_platform(
-        ProjectAccount::Admin,
-        &InstantiateMsg {
-            worker: Some(ProjectAccount::Owner.to_string()),
-            treasury: project.get_treasury_address().to_string(),
-            box_price: Some(Uint128::new(100)),
-            denom: Some(ProjectCoin::Stars.to_string()),
-            distribution: None,
-        },
-    )?;
+    project.treasury_try_create_platform(ProjectAccount::Admin, 100, ProjectCoin::Stars, &None)?;
     let platform_address = &project.treasury_query_platform_list()?[0];
 
     project.platform_try_buy(
@@ -333,16 +308,7 @@ fn send_and_open_twice_same_time() -> StdResult<()> {
     project.reset_time();
 
     // create platform
-    project.treasury_try_create_platform(
-        ProjectAccount::Admin,
-        &InstantiateMsg {
-            worker: Some(ProjectAccount::Owner.to_string()),
-            treasury: project.get_treasury_address().to_string(),
-            box_price: Some(Uint128::new(100)),
-            denom: Some(ProjectCoin::Stars.to_string()),
-            distribution: None,
-        },
-    )?;
+    project.treasury_try_create_platform(ProjectAccount::Admin, 100, ProjectCoin::Stars, &None)?;
     let platform_address = &project.treasury_query_platform_list()?[0];
 
     project.treasury_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
@@ -399,16 +365,7 @@ fn deposit_win_withdraw_nft() -> StdResult<()> {
     project.reset_time();
 
     // create platform
-    project.treasury_try_create_platform(
-        ProjectAccount::Admin,
-        &InstantiateMsg {
-            worker: Some(ProjectAccount::Owner.to_string()),
-            treasury: project.get_treasury_address().to_string(),
-            box_price: Some(Uint128::new(100)),
-            denom: Some(ProjectCoin::Stars.to_string()),
-            distribution: None,
-        },
-    )?;
+    project.treasury_try_create_platform(ProjectAccount::Admin, 100, ProjectCoin::Stars, &None)?;
     let platform_address = &project.treasury_query_platform_list()?[0];
 
     project.treasury_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;

@@ -13,7 +13,6 @@ pub struct MigrateMsg {
 pub struct InstantiateMsg {
     pub worker: Option<String>,
     pub treasury: String,
-
     pub box_price: Option<Uint128>,
     pub denom: Option<String>,
     pub distribution: Option<Vec<WeightInfo>>,
@@ -40,7 +39,6 @@ pub enum ExecuteMsg {
     UpdateConfig {
         admin: Option<String>,
         worker: Option<String>,
-
         box_price: Option<Uint128>,
         denom: Option<String>,
         distribution: Option<Vec<WeightInfo>>,

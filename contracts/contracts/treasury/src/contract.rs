@@ -56,9 +56,11 @@ pub fn execute(
 
         ExecuteMsg::AcceptAdminRole {} => e::try_accept_admin_role(deps, env, info),
 
-        ExecuteMsg::CreatePlatform { inst_msg } => {
-            e::try_create_platform(deps, env, info, inst_msg)
-        }
+        ExecuteMsg::CreatePlatform {
+            box_price,
+            denom,
+            distribution,
+        } => e::try_create_platform(deps, env, info, box_price, denom, distribution),
 
         ExecuteMsg::AddPlatform { address } => e::try_add_platform(deps, env, info, address),
 

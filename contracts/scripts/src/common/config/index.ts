@@ -1,10 +1,11 @@
 import { ChainConfig } from "../../common/interfaces";
 import { $, toJson } from "./config-utils";
+import * as TreasuryTypes from "../codegen/Treasury.types";
 import * as PlatformTypes from "../codegen/Platform.types";
 
 export type NetworkName = "STARGAZE";
 
-export type Wasm = "platform.wasm";
+export type Wasm = "treasury.wasm" | "platform.wasm";
 
 export const ADDRESS = {
   ADMIN: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
@@ -35,22 +36,30 @@ export const CHAIN_CONFIG: ChainConfig = {
             {
               WASM: "platform.wasm",
               LABEL: "platform",
-              INIT_MSG: toJson<PlatformTypes.InstantiateMsg>({
-                worker: ADDRESS.WORKER,
-                box_price: `${100_000_000}`,
-                distribution: [
-                  { box_rewards: `${0}`, weight: "0.282465" },
-                  { box_rewards: `${50_000_000}`, weight: "0.3995" },
-                  { box_rewards: `${150_000_000}`, weight: "0.13316" },
-                  { box_rewards: `${200_000_000}`, weight: "0.099875" },
-                  { box_rewards: `${250_000_000}`, weight: "0.0799" },
-                  { box_rewards: `${1_000_000_000}`, weight: "0.0051" },
-                ],
-              }),
+              INIT_MSG: toJson({}),
               MIGRATE_MSG: toJson<PlatformTypes.MigrateMsg>({
                 version: "1.0.0",
               }),
               UPDATE_MSG: toJson<PlatformTypes.ExecuteMsg>({
+                update_config: {},
+              }),
+              CODE: 0,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "treasury.wasm",
+              LABEL: "treasury",
+              INIT_MSG: toJson<TreasuryTypes.InstantiateMsg>({
+                worker: ADDRESS.WORKER,
+                platform_code_id: $(
+                  "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[WASM=platform.wasm]|CODE"
+                ),
+              }),
+              MIGRATE_MSG: toJson<TreasuryTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<TreasuryTypes.ExecuteMsg>({
                 update_config: {},
               }),
               CODE: 0,
@@ -66,19 +75,7 @@ export const CHAIN_CONFIG: ChainConfig = {
           RPC_LIST: ["https://stargaze-rpc.reece.sh:443"],
           GAS_PRICE_AMOUNT: 1.1,
           STORE_CODE_GAS_MULTIPLIER: 19.5,
-          CONTRACTS: [
-            {
-              WASM: "platform.wasm",
-              LABEL: "platform",
-              INIT_MSG: toJson<PlatformTypes.InstantiateMsg>({}),
-              MIGRATE_MSG: toJson<PlatformTypes.MigrateMsg>({
-                version: "1.0.0",
-              }),
-              UPDATE_MSG: toJson({}),
-              CODE: 0,
-              ADDRESS: "",
-            },
-          ],
+          CONTRACTS: [],
           IBC: [],
         },
       ],
