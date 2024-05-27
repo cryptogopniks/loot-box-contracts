@@ -84,8 +84,7 @@ pub fn execute(
             admin,
             worker,
             platform_code_id,
-            denom_list,
-        } => e::try_update_config(deps, env, info, admin, worker, platform_code_id, denom_list),
+        } => e::try_update_config(deps, env, info, admin, worker, platform_code_id),
 
         ExecuteMsg::Lock {} => e::try_lock(deps, env, info),
 

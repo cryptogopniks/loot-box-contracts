@@ -12,9 +12,7 @@ pub struct MigrateMsg {
 #[cw_serde]
 pub struct InstantiateMsg {
     pub worker: Option<String>,
-
     pub platform_code_id: Option<u64>,
-    pub denom_list: Option<Vec<String>>,
 }
 
 #[cw_serde]
@@ -65,9 +63,7 @@ pub enum ExecuteMsg {
     UpdateConfig {
         admin: Option<String>,
         worker: Option<String>,
-
         platform_code_id: Option<u64>,
-        denom_list: Option<Vec<String>>,
     },
 
     Lock {},

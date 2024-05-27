@@ -44,17 +44,24 @@ pub fn try_increase_balance(
         },
     )?;
 
-    let current_denom = asset_info.try_get_native()?;
+    let denom = asset_info.try_get_native()?;
     BALANCE.update(deps.storage, |mut x| -> StdResult<Balance> {
+        if x.pool
+            .iter()
+            .all(|(_current_amount, current_denom)| current_denom != &denom)
+        {
+            x.pool.push((Uint128::zero(), denom.clone()));
+        }
+
         x.pool = x
             .pool
             .into_iter()
-            .map(|(amount, denom)| {
-                if denom == current_denom {
-                    return (amount + asset_amount, denom);
+            .map(|(current_amount, current_denom)| {
+                if current_denom == denom {
+                    return (current_amount + asset_amount, current_denom);
                 }
 
-                (amount, denom)
+                (current_amount, current_denom)
             })
             .collect();
 
@@ -146,6 +153,13 @@ pub fn try_increase_rewards(
     )?;
 
     BALANCE.update(deps.storage, |mut x| -> StdResult<Balance> {
+        if x.rewards
+            .iter()
+            .all(|(_current_amount, current_denom)| current_denom != &denom)
+        {
+            x.rewards.push((Uint128::zero(), denom.clone()));
+        }
+
         x.rewards = x
             .rewards
             .into_iter()
@@ -194,7 +208,7 @@ pub fn try_send_nft(
     })?;
 
     let msg = WasmMsg::Execute {
-        contract_addr: collection.to_string(),
+        contract_addr: collection,
         msg: to_json_binary(&cw721::Cw721ExecuteMsg::TransferNft {
             recipient,
             token_id,
@@ -304,6 +318,22 @@ pub fn save_platform_address(
         Ok(x)
     })?;
 
+    // update treasury config
+    let platform::types::Config {
+        denom: platform_denom,
+        ..
+    } = deps
+        .querier
+        .query_wasm_smart(platform_address, &platform::msg::QueryMsg::QueryConfig {})?;
+
+    CONFIG.update(deps.storage, |mut x| -> StdResult<Config> {
+        if !x.denom_list.contains(&platform_denom) {
+            x.denom_list.push(platform_denom);
+        }
+
+        Ok(x)
+    })?;
+
     Ok(Response::new().add_attribute("platform_address", platform_address))
 }
 
@@ -386,36 +416,50 @@ pub fn try_deposit(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Respon
     )?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
-    let current_denom = asset_info.try_get_native()?;
+    let denom = asset_info.try_get_native()?;
     let Config { denom_list, .. } = CONFIG.load(deps.storage)?;
 
     // check fund denom
-    if !denom_list.contains(&current_denom) {
+    if !denom_list.contains(&denom) {
         Err(ContractError::WrongAssetType)?;
     }
 
     BALANCE.update(deps.storage, |mut x| -> StdResult<Balance> {
+        if x.pool
+            .iter()
+            .all(|(_current_amount, current_denom)| current_denom != &denom)
+        {
+            x.pool.push((Uint128::zero(), denom.clone()));
+        }
+
         x.pool = x
             .pool
             .into_iter()
-            .map(|(amount, denom)| {
-                if denom == current_denom {
-                    return (amount + asset_amount, denom);
+            .map(|(current_amount, current_denom)| {
+                if current_denom == denom {
+                    return (current_amount + asset_amount, current_denom);
                 }
 
-                (amount, denom)
+                (current_amount, current_denom)
             })
             .collect();
+
+        if x.deposited
+            .iter()
+            .all(|(_current_amount, current_denom)| current_denom != &denom)
+        {
+            x.deposited.push((Uint128::zero(), denom.clone()));
+        }
 
         x.deposited = x
             .deposited
             .into_iter()
-            .map(|(amount, denom)| {
-                if denom == current_denom {
-                    return (amount + asset_amount, denom);
+            .map(|(current_amount, current_denom)| {
+                if current_denom == denom {
+                    return (current_amount + asset_amount, current_denom);
                 }
 
-                (amount, denom)
+                (current_amount, current_denom)
             })
             .collect();
 
@@ -789,11 +833,9 @@ pub fn try_update_config(
     admin: Option<String>,
     worker: Option<String>,
     platform_code_id: Option<u64>,
-    denom_list: Option<Vec<String>>,
 ) -> Result<Response, ContractError> {
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     let mut config = CONFIG.load(deps.storage)?;
-    let mut balance = BALANCE.load(deps.storage)?;
     let mut is_config_updated = false;
 
     if let Some(x) = admin {
@@ -821,27 +863,6 @@ pub fn try_update_config(
     if let Some(x) = platform_code_id {
         check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
         config.platform_code_id = Some(x);
-        is_config_updated = true;
-    }
-
-    if let Some(x) = denom_list {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
-        config.denom_list = x;
-
-        for config_denom in &config.denom_list {
-            if balance
-                .pool
-                .iter()
-                .all(|(_amount, denom)| denom != config_denom)
-            {
-                balance
-                    .pool
-                    .push((Uint128::zero(), config_denom.to_owned()));
-            }
-        }
-
-        BALANCE.save(deps.storage, &balance)?;
-
         is_config_updated = true;
     }
 

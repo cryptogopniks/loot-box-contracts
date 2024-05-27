@@ -1,11 +1,11 @@
-use cosmwasm_std::{StdResult, Uint128};
+use cosmwasm_std::{Addr, StdResult, Uint128};
 use cw_multi_test::{AppResponse, Executor};
 
 use loot_box_base::{
     error::parse_err,
     platform::{
         msg::{ExecuteMsg, QueryMsg, QueryUserListResponseItem},
-        types::{Balance, BoxStats, Config, NftInfo, UserInfo, WeightInfo},
+        types::{BoxStats, Config, UserInfo, WeightInfo},
     },
 };
 
@@ -17,39 +17,42 @@ use crate::helpers::suite::{
 pub trait PlatformExtension {
     fn platform_try_buy(
         &mut self,
+        platform_address: &Addr,
         sender: ProjectAccount,
         amount: u128,
         asset: impl Into<ProjectCoin>,
     ) -> StdResult<AppResponse>;
 
-    fn platform_try_open(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
+    fn platform_try_open(
+        &mut self,
+        platform_address: &Addr,
+        sender: ProjectAccount,
+    ) -> StdResult<AppResponse>;
 
-    fn platform_try_claim(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
+    fn platform_try_claim(
+        &mut self,
+        platform_address: &Addr,
+        sender: ProjectAccount,
+    ) -> StdResult<AppResponse>;
 
     fn platform_try_send(
         &mut self,
+        platform_address: &Addr,
         sender: ProjectAccount,
         amount: u128,
         recipient: ProjectAccount,
     ) -> StdResult<AppResponse>;
 
-    fn platform_try_accept_admin_role(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
-
-    fn platform_try_deposit(
+    fn platform_try_accept_admin_role(
         &mut self,
+        platform_address: &Addr,
         sender: ProjectAccount,
-        amount: u128,
-        asset: impl Into<ProjectCoin>,
     ) -> StdResult<AppResponse>;
 
-    fn platform_try_deposit_nft(
-        &mut self,
-        sender: ProjectAccount,
-        nft_info_list: &[NftInfo<String>],
-    ) -> StdResult<AppResponse>;
-
+    #[allow(clippy::too_many_arguments)]
     fn platform_try_update_config(
         &mut self,
+        platform_address: &Addr,
         sender: ProjectAccount,
         admin: &Option<ProjectAccount>,
         worker: &Option<ProjectAccount>,
@@ -58,38 +61,31 @@ pub trait PlatformExtension {
         distribution: &Option<Vec<WeightInfo>>,
     ) -> StdResult<AppResponse>;
 
-    fn platform_try_lock(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
-
-    fn platform_try_unlock(&mut self, sender: ProjectAccount) -> StdResult<AppResponse>;
-
-    fn platform_try_withdraw(
+    fn platform_try_lock(
         &mut self,
+        platform_address: &Addr,
         sender: ProjectAccount,
-        amount: u128,
     ) -> StdResult<AppResponse>;
 
-    fn platform_try_withdraw_nft(
+    fn platform_try_unlock(
         &mut self,
+        platform_address: &Addr,
         sender: ProjectAccount,
-        nft_info_list: &[NftInfo<impl ToString>],
     ) -> StdResult<AppResponse>;
 
-    fn platform_try_update_nft_price(
-        &mut self,
-        sender: ProjectAccount,
-        nft_info_list: &[NftInfo<impl ToString>],
-    ) -> StdResult<AppResponse>;
+    fn platform_query_config(&self, platform_address: &Addr) -> StdResult<Config>;
 
-    fn platform_query_config(&self) -> StdResult<Config>;
+    fn platform_query_box_stats(&self, platform_address: &Addr) -> StdResult<BoxStats>;
 
-    fn platform_query_box_stats(&self) -> StdResult<BoxStats>;
-
-    fn platform_query_balance(&self) -> StdResult<Balance>;
-
-    fn platform_query_user(&self, address: ProjectAccount) -> StdResult<UserInfo>;
+    fn platform_query_user(
+        &self,
+        platform_address: &Addr,
+        address: ProjectAccount,
+    ) -> StdResult<UserInfo>;
 
     fn platform_query_user_list(
         &self,
+        platform_address: &Addr,
         start_after: &Option<ProjectAccount>,
         limit: &Option<u32>,
     ) -> StdResult<Vec<QueryUserListResponseItem>>;
@@ -99,22 +95,26 @@ impl PlatformExtension for Project {
     #[track_caller]
     fn platform_try_buy(
         &mut self,
+        platform_address: &Addr,
         sender: ProjectAccount,
         amount: u128,
         asset: impl Into<ProjectCoin>,
     ) -> StdResult<AppResponse> {
-        let contract_address = &self.get_platform_address();
         let msg = &ExecuteMsg::Buy {};
 
-        add_funds_to_exec_msg(self, sender, contract_address, msg, amount, asset.into())
+        add_funds_to_exec_msg(self, sender, platform_address, msg, amount, asset.into())
     }
 
     #[track_caller]
-    fn platform_try_open(&mut self, sender: ProjectAccount) -> StdResult<AppResponse> {
+    fn platform_try_open(
+        &mut self,
+        platform_address: &Addr,
+        sender: ProjectAccount,
+    ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
                 sender.into(),
-                self.get_platform_address(),
+                platform_address.to_owned(),
                 &ExecuteMsg::Open {},
                 &[],
             )
@@ -122,11 +122,15 @@ impl PlatformExtension for Project {
     }
 
     #[track_caller]
-    fn platform_try_claim(&mut self, sender: ProjectAccount) -> StdResult<AppResponse> {
+    fn platform_try_claim(
+        &mut self,
+        platform_address: &Addr,
+        sender: ProjectAccount,
+    ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
                 sender.into(),
-                self.get_platform_address(),
+                platform_address.to_owned(),
                 &ExecuteMsg::Claim {},
                 &[],
             )
@@ -136,6 +140,7 @@ impl PlatformExtension for Project {
     #[track_caller]
     fn platform_try_send(
         &mut self,
+        platform_address: &Addr,
         sender: ProjectAccount,
         amount: u128,
         recipient: ProjectAccount,
@@ -143,7 +148,7 @@ impl PlatformExtension for Project {
         self.app
             .execute_contract(
                 sender.into(),
-                self.get_platform_address(),
+                platform_address.to_owned(),
                 &ExecuteMsg::Send {
                     amount: Uint128::new(amount),
                     recipient: recipient.to_string(),
@@ -154,43 +159,16 @@ impl PlatformExtension for Project {
     }
 
     #[track_caller]
-    fn platform_try_accept_admin_role(&mut self, sender: ProjectAccount) -> StdResult<AppResponse> {
+    fn platform_try_accept_admin_role(
+        &mut self,
+        platform_address: &Addr,
+        sender: ProjectAccount,
+    ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
                 sender.into(),
-                self.get_platform_address(),
+                platform_address.to_owned(),
                 &ExecuteMsg::AcceptAdminRole {},
-                &[],
-            )
-            .map_err(parse_err)
-    }
-
-    #[track_caller]
-    fn platform_try_deposit(
-        &mut self,
-        sender: ProjectAccount,
-        amount: u128,
-        asset: impl Into<ProjectCoin>,
-    ) -> StdResult<AppResponse> {
-        let contract_address = &self.get_platform_address();
-        let msg = &ExecuteMsg::Deposit {};
-
-        add_funds_to_exec_msg(self, sender, contract_address, msg, amount, asset.into())
-    }
-
-    #[track_caller]
-    fn platform_try_deposit_nft(
-        &mut self,
-        sender: ProjectAccount,
-        nft_info_list: &[NftInfo<String>],
-    ) -> StdResult<AppResponse> {
-        self.app
-            .execute_contract(
-                sender.into(),
-                self.get_platform_address(),
-                &ExecuteMsg::DepositNft {
-                    nft_info_list: nft_info_list.to_owned(),
-                },
                 &[],
             )
             .map_err(parse_err)
@@ -199,6 +177,7 @@ impl PlatformExtension for Project {
     #[track_caller]
     fn platform_try_update_config(
         &mut self,
+        platform_address: &Addr,
         sender: ProjectAccount,
         admin: &Option<ProjectAccount>,
         worker: &Option<ProjectAccount>,
@@ -209,7 +188,7 @@ impl PlatformExtension for Project {
         self.app
             .execute_contract(
                 sender.into(),
-                self.get_platform_address(),
+                platform_address.to_owned(),
                 &ExecuteMsg::UpdateConfig {
                     admin: admin.as_ref().map(|x| x.to_string()),
                     worker: worker.as_ref().map(|x| x.to_string()),
@@ -223,11 +202,15 @@ impl PlatformExtension for Project {
     }
 
     #[track_caller]
-    fn platform_try_lock(&mut self, sender: ProjectAccount) -> StdResult<AppResponse> {
+    fn platform_try_lock(
+        &mut self,
+        platform_address: &Addr,
+        sender: ProjectAccount,
+    ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
                 sender.into(),
-                self.get_platform_address(),
+                platform_address.to_owned(),
                 &ExecuteMsg::Lock {},
                 &[],
             )
@@ -235,11 +218,15 @@ impl PlatformExtension for Project {
     }
 
     #[track_caller]
-    fn platform_try_unlock(&mut self, sender: ProjectAccount) -> StdResult<AppResponse> {
+    fn platform_try_unlock(
+        &mut self,
+        platform_address: &Addr,
+        sender: ProjectAccount,
+    ) -> StdResult<AppResponse> {
         self.app
             .execute_contract(
                 sender.into(),
-                self.get_platform_address(),
+                platform_address.to_owned(),
                 &ExecuteMsg::Unlock {},
                 &[],
             )
@@ -247,98 +234,27 @@ impl PlatformExtension for Project {
     }
 
     #[track_caller]
-    fn platform_try_withdraw(
-        &mut self,
-        sender: ProjectAccount,
-        amount: u128,
-    ) -> StdResult<AppResponse> {
-        self.app
-            .execute_contract(
-                sender.into(),
-                self.get_platform_address(),
-                &ExecuteMsg::Withdraw {
-                    amount: Uint128::new(amount),
-                },
-                &[],
-            )
-            .map_err(parse_err)
-    }
-
-    #[track_caller]
-    fn platform_try_withdraw_nft(
-        &mut self,
-        sender: ProjectAccount,
-        nft_info_list: &[NftInfo<impl ToString>],
-    ) -> StdResult<AppResponse> {
-        self.app
-            .execute_contract(
-                sender.into(),
-                self.get_platform_address(),
-                &ExecuteMsg::WithdrawNft {
-                    nft_info_list: nft_info_list
-                        .iter()
-                        .map(|x| NftInfo {
-                            collection: x.collection.to_string(),
-                            token_id: x.token_id.clone(),
-                            price: x.price,
-                        })
-                        .collect(),
-                },
-                &[],
-            )
-            .map_err(parse_err)
-    }
-
-    #[track_caller]
-    fn platform_try_update_nft_price(
-        &mut self,
-        sender: ProjectAccount,
-        nft_info_list: &[NftInfo<impl ToString>],
-    ) -> StdResult<AppResponse> {
-        self.app
-            .execute_contract(
-                sender.into(),
-                self.get_platform_address(),
-                &ExecuteMsg::UpdateNftPrice {
-                    nft_info_list: nft_info_list
-                        .iter()
-                        .map(|x| NftInfo {
-                            collection: x.collection.to_string(),
-                            token_id: x.token_id.clone(),
-                            price: x.price,
-                        })
-                        .collect(),
-                },
-                &[],
-            )
-            .map_err(parse_err)
-    }
-
-    #[track_caller]
-    fn platform_query_config(&self) -> StdResult<Config> {
+    fn platform_query_config(&self, platform_address: &Addr) -> StdResult<Config> {
         self.app
             .wrap()
-            .query_wasm_smart(self.get_platform_address(), &QueryMsg::QueryConfig {})
+            .query_wasm_smart(platform_address.to_owned(), &QueryMsg::QueryConfig {})
     }
 
     #[track_caller]
-    fn platform_query_box_stats(&self) -> StdResult<BoxStats> {
+    fn platform_query_box_stats(&self, platform_address: &Addr) -> StdResult<BoxStats> {
         self.app
             .wrap()
-            .query_wasm_smart(self.get_platform_address(), &QueryMsg::QueryBoxStats {})
+            .query_wasm_smart(platform_address.to_owned(), &QueryMsg::QueryBoxStats {})
     }
 
     #[track_caller]
-    fn platform_query_balance(&self) -> StdResult<Balance> {
-        self.app
-            .wrap()
-            .query_wasm_smart(self.get_platform_address(), &QueryMsg::QueryBalance {})
-    }
-
-    #[track_caller]
-    fn platform_query_user(&self, address: ProjectAccount) -> StdResult<UserInfo> {
+    fn platform_query_user(
+        &self,
+        platform_address: &Addr,
+        address: ProjectAccount,
+    ) -> StdResult<UserInfo> {
         self.app.wrap().query_wasm_smart(
-            self.get_platform_address(),
+            platform_address.to_owned(),
             &QueryMsg::QueryUser {
                 address: address.to_string(),
             },
@@ -348,11 +264,12 @@ impl PlatformExtension for Project {
     #[track_caller]
     fn platform_query_user_list(
         &self,
+        platform_address: &Addr,
         start_after: &Option<ProjectAccount>,
         limit: &Option<u32>,
     ) -> StdResult<Vec<QueryUserListResponseItem>> {
         self.app.wrap().query_wasm_smart(
-            self.get_platform_address(),
+            platform_address.to_owned(),
             &QueryMsg::QueryUserList {
                 start_after: start_after.as_ref().map(|x| x.to_string()),
                 limit: limit.to_owned(),

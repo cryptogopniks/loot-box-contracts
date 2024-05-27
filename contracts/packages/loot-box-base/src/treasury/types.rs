@@ -5,9 +5,8 @@ use cosmwasm_std::{Addr, Uint128};
 pub struct Config {
     pub admin: Addr,          // contract maintainer
     pub worker: Option<Addr>, // app customer
-
     pub platform_code_id: Option<u64>,
-    pub denom_list: Vec<String>,
+    pub denom_list: Vec<String>, // updated by platform contracts
 }
 
 #[derive(Default)]

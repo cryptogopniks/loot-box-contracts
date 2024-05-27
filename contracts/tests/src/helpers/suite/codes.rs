@@ -42,7 +42,6 @@ pub trait WithCodes {
         treasury_code_id: u64,
         platform_code_id: u64,
         worker: &Option<ProjectAccount>,
-        denom_list: &Option<Vec<ProjectCoin>>,
     ) -> Addr;
 
     fn migrate_contract(
@@ -182,7 +181,6 @@ impl WithCodes for Project {
         treasury_code_id: u64,
         platform_code_id: u64,
         worker: &Option<ProjectAccount>,
-        denom_list: &Option<Vec<ProjectCoin>>,
     ) -> Addr {
         self.instantiate_contract(
             treasury_code_id,
@@ -190,9 +188,6 @@ impl WithCodes for Project {
             &loot_box_base::treasury::msg::InstantiateMsg {
                 worker: worker.as_ref().map(|x| x.to_string()),
                 platform_code_id: Some(platform_code_id),
-                denom_list: denom_list
-                    .as_ref()
-                    .map(|x| x.into_iter().map(|y| y.to_string()).collect()),
             },
         )
     }

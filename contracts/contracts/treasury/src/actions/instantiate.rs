@@ -1,4 +1,4 @@
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, Uint128};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
 
 use loot_box_base::{
@@ -36,7 +36,7 @@ pub fn try_instantiate(
                 .transpose()
                 .unwrap_or(Some(sender.to_owned())),
             platform_code_id: Some(msg.platform_code_id.unwrap_or(PLATFORM_CODE_ID)),
-            denom_list: msg.denom_list.unwrap_or_default(),
+            denom_list: vec![],
         },
     )?;
 
@@ -49,15 +49,7 @@ pub fn try_instantiate(
         },
     )?;
 
-    let mut balance = Balance::default();
-    balance.pool = CONFIG
-        .load(deps.storage)?
-        .denom_list
-        .into_iter()
-        .map(|x| (Uint128::zero(), x))
-        .collect();
-
-    BALANCE.save(deps.storage, &balance)?;
+    BALANCE.save(deps.storage, &Balance::default())?;
     PLATFORM_LIST.save(deps.storage, &vec![])?;
     REMOVED_PLATFORM_LIST.save(deps.storage, &vec![])?;
 

@@ -6,7 +6,11 @@ use cosmwasm_std::{Decimal, StdResult, Uint128};
 use loot_box_base::{
     converters::{str_to_dec, u128_to_dec},
     error::ContractError,
-    platform::types::{NftInfo, OpeningInfo, WeightInfo},
+    platform::{
+        msg::InstantiateMsg,
+        types::{OpeningInfo, WeightInfo},
+    },
+    treasury::types::NftInfo,
 };
 
 use crate::helpers::{
@@ -15,6 +19,7 @@ use crate::helpers::{
         core::{assert_error, Project},
         types::{ProjectAccount, ProjectCoin, ProjectNft},
     },
+    treasury::TreasuryExtension,
 };
 
 // 1) aggressive distribution
@@ -111,31 +116,40 @@ fn opening_probability() -> StdResult<()> {
     //     (1000, "0.02125"),
     // ];
 
-    project.platform_try_update_config(
+    // create platform
+    project.treasury_try_create_platform(
         ProjectAccount::Admin,
-        &None,
-        &None,
-        &None,
-        &None,
-        &Some(
-            price_and_weight_list
-                .iter()
-                .map(|(rewards, weight)| WeightInfo {
-                    box_rewards: Uint128::new(rewards.to_owned()),
-                    weight: str_to_dec(weight),
-                })
-                .collect(),
-        ),
+        &InstantiateMsg {
+            worker: Some(ProjectAccount::Owner.to_string()),
+            treasury: project.get_treasury_address().to_string(),
+            box_price: Some(Uint128::new(100)),
+            denom: Some(ProjectCoin::Stars.to_string()),
+            distribution: Some(
+                price_and_weight_list
+                    .iter()
+                    .map(|(rewards, weight)| WeightInfo {
+                        box_rewards: Uint128::new(rewards.to_owned()),
+                        weight: str_to_dec(weight),
+                    })
+                    .collect(),
+            ),
+        },
     )?;
+    let platform_address = &project.treasury_query_platform_list()?[0];
 
     let mut stats: Vec<u128> = vec![0; price_and_weight_list.len()];
     let mut price_list: Vec<u128> = vec![];
 
-    project.platform_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
+    project.treasury_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
 
     for _ in 0..ROUNDS {
-        project.platform_try_buy(ProjectAccount::Alice, BOX_PRICE, ProjectCoin::Stars)?;
-        let res = project.platform_try_open(ProjectAccount::Alice)?;
+        project.platform_try_buy(
+            platform_address,
+            ProjectAccount::Alice,
+            BOX_PRICE,
+            ProjectCoin::Stars,
+        )?;
+        let res = project.platform_try_open(platform_address, ProjectAccount::Alice)?;
 
         let price = parse_attr(&res, "coins").unwrap().parse::<u128>().unwrap();
         price_list.push(price);
@@ -190,17 +204,35 @@ fn opening_stats() -> StdResult<()> {
     let mut project = Project::new();
     project.reset_time();
 
-    project.platform_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
+    // create platform
+    project.treasury_try_create_platform(
+        ProjectAccount::Admin,
+        &InstantiateMsg {
+            worker: Some(ProjectAccount::Owner.to_string()),
+            treasury: project.get_treasury_address().to_string(),
+            box_price: Some(Uint128::new(100)),
+            denom: Some(ProjectCoin::Stars.to_string()),
+            distribution: None,
+        },
+    )?;
+    let platform_address = &project.treasury_query_platform_list()?[0];
 
-    project.platform_try_buy(ProjectAccount::Alice, 4 * BOX_PRICE, ProjectCoin::Stars)?;
+    project.treasury_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
+
+    project.platform_try_buy(
+        platform_address,
+        ProjectAccount::Alice,
+        4 * BOX_PRICE,
+        ProjectCoin::Stars,
+    )?;
 
     for _ in 0..3 {
-        project.platform_try_open(ProjectAccount::Alice)?;
+        project.platform_try_open(platform_address, ProjectAccount::Alice)?;
         project.wait(5);
     }
 
-    let box_stats = project.platform_query_box_stats()?;
-    let user = project.platform_query_user(ProjectAccount::Alice)?;
+    let box_stats = project.platform_query_box_stats(platform_address)?;
+    let user = project.platform_query_user(platform_address, ProjectAccount::Alice)?;
 
     let expected_opened = vec![
         OpeningInfo {
@@ -230,10 +262,28 @@ fn claim_default() -> StdResult<()> {
     let mut project = Project::new();
     project.reset_time();
 
-    project.platform_try_buy(ProjectAccount::Alice, BOX_PRICE, ProjectCoin::Stars)?;
+    // create platform
+    project.treasury_try_create_platform(
+        ProjectAccount::Admin,
+        &InstantiateMsg {
+            worker: Some(ProjectAccount::Owner.to_string()),
+            treasury: project.get_treasury_address().to_string(),
+            box_price: Some(Uint128::new(100)),
+            denom: Some(ProjectCoin::Stars.to_string()),
+            distribution: None,
+        },
+    )?;
+    let platform_address = &project.treasury_query_platform_list()?[0];
+
+    project.platform_try_buy(
+        platform_address,
+        ProjectAccount::Alice,
+        BOX_PRICE,
+        ProjectCoin::Stars,
+    )?;
 
     project.wait(11);
-    let res = project.platform_try_open(ProjectAccount::Alice)?;
+    let res = project.platform_try_open(platform_address, ProjectAccount::Alice)?;
     let price = parse_attr(&res, "rewards")
         .unwrap()
         .parse::<u128>()
@@ -241,31 +291,36 @@ fn claim_default() -> StdResult<()> {
     assert_that(&price).is_equal_to(500);
 
     // check rewards
-    let user = project.platform_query_user(ProjectAccount::Alice)?;
-    let balance = project.platform_query_balance()?;
+    let user = project.platform_query_user(platform_address, ProjectAccount::Alice)?;
+    let balance = project.treasury_query_balance()?;
 
     assert_that(&user.rewards.u128()).is_equal_to(500);
-    assert_that(&balance.rewards.u128()).is_equal_to(500);
+    assert_that(&balance.rewards)
+        .is_equal_to(vec![(Uint128::new(500), ProjectCoin::Stars.to_string())]);
 
     // try claim
     let res = project
-        .platform_try_claim(ProjectAccount::Alice)
+        .platform_try_claim(platform_address, ProjectAccount::Alice)
         .unwrap_err();
     assert_error(&res, ContractError::NotEnoughLiquidity);
 
     // add liquidity
-    project.platform_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
+    project.treasury_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
 
     // claim
-    project.platform_try_claim(ProjectAccount::Alice)?;
+    project.platform_try_claim(platform_address, ProjectAccount::Alice)?;
 
     // check rewards
-    let user = project.platform_query_user(ProjectAccount::Alice)?;
-    let balance = project.platform_query_balance()?;
+    let user = project.platform_query_user(platform_address, ProjectAccount::Alice)?;
+    let balance = project.treasury_query_balance()?;
 
     assert_that(&user.rewards.u128()).is_equal_to(0);
-    assert_that(&balance.rewards.u128()).is_equal_to(0);
-    assert_that(&balance.deposited.u128()).is_equal_to(100 * BOX_PRICE);
+    assert_that(&balance.rewards)
+        .is_equal_to(vec![(Uint128::zero(), ProjectCoin::Stars.to_string())]);
+    assert_that(&balance.deposited).is_equal_to(vec![(
+        Uint128::new(100 * BOX_PRICE),
+        ProjectCoin::Stars.to_string(),
+    )]);
 
     Ok(())
 }
@@ -277,13 +332,36 @@ fn send_and_open_twice_same_time() -> StdResult<()> {
     let mut project = Project::new();
     project.reset_time();
 
-    project.platform_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
+    // create platform
+    project.treasury_try_create_platform(
+        ProjectAccount::Admin,
+        &InstantiateMsg {
+            worker: Some(ProjectAccount::Owner.to_string()),
+            treasury: project.get_treasury_address().to_string(),
+            box_price: Some(Uint128::new(100)),
+            denom: Some(ProjectCoin::Stars.to_string()),
+            distribution: None,
+        },
+    )?;
+    let platform_address = &project.treasury_query_platform_list()?[0];
 
-    project.platform_try_buy(ProjectAccount::Alice, 2 * BOX_PRICE, ProjectCoin::Stars)?;
-    project.platform_try_send(ProjectAccount::Alice, 2, ProjectAccount::John)?;
+    project.treasury_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
 
-    let alice = project.platform_query_user(ProjectAccount::Alice)?;
-    let john = project.platform_query_user(ProjectAccount::John)?;
+    project.platform_try_buy(
+        platform_address,
+        ProjectAccount::Alice,
+        2 * BOX_PRICE,
+        ProjectCoin::Stars,
+    )?;
+    project.platform_try_send(
+        platform_address,
+        ProjectAccount::Alice,
+        2,
+        ProjectAccount::John,
+    )?;
+
+    let alice = project.platform_query_user(platform_address, ProjectAccount::Alice)?;
+    let john = project.platform_query_user(platform_address, ProjectAccount::John)?;
 
     assert_that(&alice.sent.u128()).is_equal_to(2);
     assert_that(&john.boxes.u128()).is_equal_to(2);
@@ -292,17 +370,19 @@ fn send_and_open_twice_same_time() -> StdResult<()> {
     let john_balance_before = project.query_balance(ProjectAccount::John, &ProjectCoin::Stars)?;
 
     project.wait(11);
-    project.platform_try_open(ProjectAccount::John)?;
+    project.platform_try_open(platform_address, ProjectAccount::John)?;
 
     // try open twice same time
-    let res = project.platform_try_open(ProjectAccount::John).unwrap_err();
+    let res = project
+        .platform_try_open(platform_address, ProjectAccount::John)
+        .unwrap_err();
     assert_error(&res, ContractError::MultipleBoxesPerTx);
 
     project.wait(1);
-    project.platform_try_open(ProjectAccount::John)?;
+    project.platform_try_open(platform_address, ProjectAccount::John)?;
 
     // check rewards
-    let john = project.platform_query_user(ProjectAccount::John)?;
+    let john = project.platform_query_user(platform_address, ProjectAccount::John)?;
     let john_balance_after = project.query_balance(ProjectAccount::John, &ProjectCoin::Stars)?;
 
     assert_that(&john.opened.len()).is_equal_to(2);
@@ -318,7 +398,20 @@ fn deposit_win_withdraw_nft() -> StdResult<()> {
     let mut project = Project::new();
     project.reset_time();
 
-    project.platform_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
+    // create platform
+    project.treasury_try_create_platform(
+        ProjectAccount::Admin,
+        &InstantiateMsg {
+            worker: Some(ProjectAccount::Owner.to_string()),
+            treasury: project.get_treasury_address().to_string(),
+            box_price: Some(Uint128::new(100)),
+            denom: Some(ProjectCoin::Stars.to_string()),
+            distribution: None,
+        },
+    )?;
+    let platform_address = &project.treasury_query_platform_list()?[0];
+
+    project.treasury_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
     project.transfer_nft(
         ProjectAccount::Alice,
         ProjectAccount::Admin,
@@ -333,30 +426,35 @@ fn deposit_win_withdraw_nft() -> StdResult<()> {
     );
     project.increase_allowances_nft(
         ProjectAccount::Admin,
-        project.get_platform_address(),
+        project.get_treasury_address(),
         ProjectNft::Gopniks,
     );
-    project.platform_try_deposit_nft(
+    project.treasury_try_deposit_nft(
         ProjectAccount::Admin,
         &[NftInfo {
             collection: ProjectNft::Gopniks.to_string(),
             token_id: "1".to_string(),
-            price: Uint128::new(50),
+            price_option: vec![(Uint128::new(50), ProjectCoin::Stars.to_string())],
         }],
     )?;
-    project.platform_try_deposit_nft(
+    project.treasury_try_deposit_nft(
         ProjectAccount::Admin,
         &[NftInfo {
             collection: ProjectNft::Gopniks.to_string(),
             token_id: "2".to_string(),
-            price: Uint128::new(50),
+            price_option: vec![(Uint128::new(50), ProjectCoin::Stars.to_string())],
         }],
     )?;
 
-    project.platform_try_buy(ProjectAccount::Kate, 100 * BOX_PRICE, ProjectCoin::Stars)?;
+    project.platform_try_buy(
+        platform_address,
+        ProjectAccount::Kate,
+        100 * BOX_PRICE,
+        ProjectCoin::Stars,
+    )?;
 
     project.wait(7);
-    let res = project.platform_try_open(ProjectAccount::Kate)?;
+    let res = project.platform_try_open(platform_address, ProjectAccount::Kate)?;
     let token_id = parse_attr(&res, "token_id").unwrap();
 
     let (collection, cw721::TokensResponse { tokens }) =
@@ -366,9 +464,9 @@ fn deposit_win_withdraw_nft() -> StdResult<()> {
     assert_that(&collection.to_string()).is_equal_to(ProjectNft::Gopniks.to_string());
     assert_that(&tokens.contains(&"1".to_string())).is_equal_to(true);
 
-    let nft_info_list = project.platform_query_balance()?.nft_pool;
+    let nft_info_list = project.treasury_query_balance()?.nft_pool;
 
-    project.platform_try_withdraw_nft(ProjectAccount::Owner, &nft_info_list)?;
+    project.treasury_try_withdraw_nft(ProjectAccount::Owner, &nft_info_list)?;
     let (_collection, cw721::TokensResponse { tokens }) =
         &project.query_all_nft(ProjectAccount::Owner)[0];
     assert_that(&tokens.contains(&"2".to_string())).is_equal_to(true);
