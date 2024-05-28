@@ -513,7 +513,7 @@ pub fn try_withdraw(
             .iter()
             .cloned()
             .find(|(_amount, deposited_denom)| deposited_denom == &denom)
-            .ok_or(ContractError::AssetIsNotFound)?;
+            .unwrap_or_default();
 
         if amount > pool_amount {
             Err(ContractError::NotEnoughLiquidity)?;

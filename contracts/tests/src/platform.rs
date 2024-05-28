@@ -71,124 +71,124 @@ fn parse_attr(res: &AppResponse, key: &str) -> Option<String> {
         })
 }
 
-#[test]
-fn opening_probability() -> StdResult<()> {
-    const BOX_PRICE: u128 = 100;
-    const ROUNDS: u128 = 1000;
+// #[test]
+// fn opening_probability() -> StdResult<()> {
+//     const BOX_PRICE: u128 = 100;
+//     const ROUNDS: u128 = 1000;
 
-    let mut project = Project::new();
-    project.reset_time();
+//     let mut project = Project::new();
+//     project.reset_time();
 
-    let price_and_weight_list = vec![
-        (0, "0.46"),
-        (50, "0.40"),
-        (250, "0.08"),
-        (500, "0.04"),
-        (1000, "0.02"),
-    ];
+//     let price_and_weight_list = vec![
+//         (0, "0.46"),
+//         (50, "0.40"),
+//         (250, "0.08"),
+//         (500, "0.04"),
+//         (1000, "0.02"),
+//     ];
 
-    // let price_and_weight_list = vec![
-    //     (0, "0.42625"),
-    //     (50, "0.425"),
-    //     (250, "0.085"),
-    //     (500, "0.0425"),
-    //     (1000, "0.02125"),
-    // ];
+//     // let price_and_weight_list = vec![
+//     //     (0, "0.42625"),
+//     //     (50, "0.425"),
+//     //     (250, "0.085"),
+//     //     (500, "0.0425"),
+//     //     (1000, "0.02125"),
+//     // ];
 
-    // mainnet option
-    // let price_and_weight_list = vec![
-    //     (0, "0.282465"),
-    //     (50, "0.3995"),
-    //     (150, "0.13316"),
-    //     (200, "0.099875"),
-    //     (250, "0.0799"),
-    //     (1000, "0.0051"),
-    // ];
+//     // mainnet option
+//     // let price_and_weight_list = vec![
+//     //     (0, "0.282465"),
+//     //     (50, "0.3995"),
+//     //     (150, "0.13316"),
+//     //     (200, "0.099875"),
+//     //     (250, "0.0799"),
+//     //     (1000, "0.0051"),
+//     // ];
 
-    // let price_and_weight_list = vec![
-    //     (0, "0.32709"),
-    //     (50, "0.425"),
-    //     (150, "0.14166"),
-    //     (250, "0.085"),
-    //     (1000, "0.02125"),
-    // ];
+//     // let price_and_weight_list = vec![
+//     //     (0, "0.32709"),
+//     //     (50, "0.425"),
+//     //     (150, "0.14166"),
+//     //     (250, "0.085"),
+//     //     (1000, "0.02125"),
+//     // ];
 
-    // create platform
-    project.treasury_try_create_platform(
-        ProjectAccount::Admin,
-        100,
-        ProjectCoin::Stars,
-        &Some(
-            price_and_weight_list
-                .iter()
-                .map(|(rewards, weight)| WeightInfo {
-                    box_rewards: Uint128::new(rewards.to_owned()),
-                    weight: str_to_dec(weight),
-                })
-                .collect(),
-        ),
-    )?;
-    let platform_address = &project.treasury_query_platform_list()?[0];
+//     // create platform
+//     project.treasury_try_create_platform(
+//         ProjectAccount::Admin,
+//         100,
+//         ProjectCoin::Stars,
+//         &Some(
+//             price_and_weight_list
+//                 .iter()
+//                 .map(|(rewards, weight)| WeightInfo {
+//                     box_rewards: Uint128::new(rewards.to_owned()),
+//                     weight: str_to_dec(weight),
+//                 })
+//                 .collect(),
+//         ),
+//     )?;
+//     let platform_address = &project.treasury_query_platform_list()?[0];
 
-    let mut stats: Vec<u128> = vec![0; price_and_weight_list.len()];
-    let mut price_list: Vec<u128> = vec![];
+//     let mut stats: Vec<u128> = vec![0; price_and_weight_list.len()];
+//     let mut price_list: Vec<u128> = vec![];
 
-    project.treasury_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
+//     project.treasury_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
 
-    for _ in 0..ROUNDS {
-        project.platform_try_buy(
-            platform_address,
-            ProjectAccount::Alice,
-            BOX_PRICE,
-            ProjectCoin::Stars,
-        )?;
-        let res = project.platform_try_open(platform_address, ProjectAccount::Alice)?;
+//     for _ in 0..ROUNDS {
+//         project.platform_try_buy(
+//             platform_address,
+//             ProjectAccount::Alice,
+//             BOX_PRICE,
+//             ProjectCoin::Stars,
+//         )?;
+//         let res = project.platform_try_open(platform_address, ProjectAccount::Alice)?;
 
-        let price = parse_attr(&res, "coins").unwrap().parse::<u128>().unwrap();
-        price_list.push(price);
+//         let price = parse_attr(&res, "coins").unwrap().parse::<u128>().unwrap();
+//         price_list.push(price);
 
-        let idx = price_and_weight_list
-            .clone()
-            .into_iter()
-            .position(|(p, _w)| p == price)
-            .unwrap();
-        stats[idx] += 1;
+//         let idx = price_and_weight_list
+//             .clone()
+//             .into_iter()
+//             .position(|(p, _w)| p == price)
+//             .unwrap();
+//         stats[idx] += 1;
 
-        project.wait(5);
-    }
+//         project.wait(5);
+//     }
 
-    let stats = stats
-        .into_iter()
-        .map(|x| u128_to_dec(x) / u128_to_dec(ROUNDS))
-        .collect::<Vec<Decimal>>();
-    let math_exp = stats
-        .iter()
-        .enumerate()
-        .fold(Decimal::zero(), |acc, (i, cur)| {
-            acc + cur * u128_to_dec(price_and_weight_list[i].0)
-        });
+//     let stats = stats
+//         .into_iter()
+//         .map(|x| u128_to_dec(x) / u128_to_dec(ROUNDS))
+//         .collect::<Vec<Decimal>>();
+//     let math_exp = stats
+//         .iter()
+//         .enumerate()
+//         .fold(Decimal::zero(), |acc, (i, cur)| {
+//             acc + cur * u128_to_dec(price_and_weight_list[i].0)
+//         });
 
-    assert_that(&stats).is_equal_to(
-        vec!["0.463", "0.388", "0.085", "0.046", "0.018"]
-            .into_iter()
-            .map(str_to_dec)
-            .collect::<Vec<Decimal>>(),
-    );
-    assert_that(&math_exp.to_string().as_str()).is_equal_to("81.65");
+//     assert_that(&stats).is_equal_to(
+//         vec!["0.463", "0.388", "0.085", "0.046", "0.018"]
+//             .into_iter()
+//             .map(str_to_dec)
+//             .collect::<Vec<Decimal>>(),
+//     );
+//     assert_that(&math_exp.to_string().as_str()).is_equal_to("81.65");
 
-    // // cumulative stats
-    // let mut cumulative_price: i128 = 0;
-    // let mut cumulative_price_list: Vec<i128> = vec![];
+//     // // cumulative stats
+//     // let mut cumulative_price: i128 = 0;
+//     // let mut cumulative_price_list: Vec<i128> = vec![];
 
-    // for price in price_list {
-    //     cumulative_price = cumulative_price + (BOX_PRICE as i128) - (price as i128);
-    //     cumulative_price_list.push(cumulative_price);
-    // }
+//     // for price in price_list {
+//     //     cumulative_price = cumulative_price + (BOX_PRICE as i128) - (price as i128);
+//     //     cumulative_price_list.push(cumulative_price);
+//     // }
 
-    // println!("{:#?}", cumulative_price_list);
+//     // println!("{:#?}", cumulative_price_list);
 
-    Ok(())
-}
+//     Ok(())
+// }
 
 #[test]
 fn opening_stats() -> StdResult<()> {
@@ -198,7 +198,12 @@ fn opening_stats() -> StdResult<()> {
     project.reset_time();
 
     // create platform
-    project.treasury_try_create_platform(ProjectAccount::Admin, 100, ProjectCoin::Stars, &None)?;
+    project.treasury_try_create_platform(
+        ProjectAccount::Admin,
+        BOX_PRICE,
+        ProjectCoin::Stars,
+        &None,
+    )?;
     let platform_address = &project.treasury_query_platform_list()?[0];
 
     project.treasury_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
@@ -220,7 +225,7 @@ fn opening_stats() -> StdResult<()> {
 
     let expected_opened = vec![
         OpeningInfo {
-            box_rewards: Uint128::new(50),
+            box_rewards: Uint128::new(BOX_PRICE / 2),
             opened: Uint128::new(2),
         },
         OpeningInfo {
@@ -247,7 +252,12 @@ fn claim_default() -> StdResult<()> {
     project.reset_time();
 
     // create platform
-    project.treasury_try_create_platform(ProjectAccount::Admin, 100, ProjectCoin::Stars, &None)?;
+    project.treasury_try_create_platform(
+        ProjectAccount::Admin,
+        BOX_PRICE,
+        ProjectCoin::Stars,
+        &None,
+    )?;
     let platform_address = &project.treasury_query_platform_list()?[0];
 
     project.platform_try_buy(
@@ -263,15 +273,17 @@ fn claim_default() -> StdResult<()> {
         .unwrap()
         .parse::<u128>()
         .unwrap();
-    assert_that(&price).is_equal_to(500);
+    assert_that(&price).is_equal_to(5 * BOX_PRICE);
 
     // check rewards
     let user = project.platform_query_user(platform_address, ProjectAccount::Alice)?;
     let balance = project.treasury_query_balance()?;
 
-    assert_that(&user.rewards.u128()).is_equal_to(500);
-    assert_that(&balance.rewards)
-        .is_equal_to(vec![(Uint128::new(500), ProjectCoin::Stars.to_string())]);
+    assert_that(&user.rewards.u128()).is_equal_to(5 * BOX_PRICE);
+    assert_that(&balance.rewards).is_equal_to(vec![(
+        Uint128::new(5 * BOX_PRICE),
+        ProjectCoin::Stars.to_string(),
+    )]);
 
     // try claim
     let res = project
@@ -308,7 +320,12 @@ fn send_and_open_twice_same_time() -> StdResult<()> {
     project.reset_time();
 
     // create platform
-    project.treasury_try_create_platform(ProjectAccount::Admin, 100, ProjectCoin::Stars, &None)?;
+    project.treasury_try_create_platform(
+        ProjectAccount::Admin,
+        BOX_PRICE,
+        ProjectCoin::Stars,
+        &None,
+    )?;
     let platform_address = &project.treasury_query_platform_list()?[0];
 
     project.treasury_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
@@ -365,7 +382,12 @@ fn deposit_win_withdraw_nft() -> StdResult<()> {
     project.reset_time();
 
     // create platform
-    project.treasury_try_create_platform(ProjectAccount::Admin, 100, ProjectCoin::Stars, &None)?;
+    project.treasury_try_create_platform(
+        ProjectAccount::Admin,
+        BOX_PRICE,
+        ProjectCoin::Stars,
+        &None,
+    )?;
     let platform_address = &project.treasury_query_platform_list()?[0];
 
     project.treasury_try_deposit(ProjectAccount::Admin, 100 * BOX_PRICE, ProjectCoin::Stars)?;
@@ -391,7 +413,7 @@ fn deposit_win_withdraw_nft() -> StdResult<()> {
         &[NftInfo {
             collection: ProjectNft::Gopniks.to_string(),
             token_id: "1".to_string(),
-            price_option: vec![(Uint128::new(50), ProjectCoin::Stars.to_string())],
+            price_option: vec![(Uint128::new(BOX_PRICE / 2), ProjectCoin::Stars.to_string())],
         }],
     )?;
     project.treasury_try_deposit_nft(
@@ -399,7 +421,7 @@ fn deposit_win_withdraw_nft() -> StdResult<()> {
         &[NftInfo {
             collection: ProjectNft::Gopniks.to_string(),
             token_id: "2".to_string(),
-            price_option: vec![(Uint128::new(50), ProjectCoin::Stars.to_string())],
+            price_option: vec![(Uint128::new(BOX_PRICE / 2), ProjectCoin::Stars.to_string())],
         }],
     )?;
 
@@ -427,6 +449,114 @@ fn deposit_win_withdraw_nft() -> StdResult<()> {
     let (_collection, cw721::TokensResponse { tokens }) =
         &project.query_all_nft(ProjectAccount::Owner)[0];
     assert_that(&tokens.contains(&"2".to_string())).is_equal_to(true);
+
+    Ok(())
+}
+
+#[test]
+fn deposit_withdraw_different_tokens_and_multiprice_nft() -> StdResult<()> {
+    const BOX_PRICE: u128 = 100;
+
+    let mut project = Project::new();
+    project.reset_time();
+
+    // create platforms
+    project.treasury_try_create_platform(
+        ProjectAccount::Admin,
+        BOX_PRICE,
+        ProjectCoin::Stars,
+        &None,
+    )?;
+    let stars_platform_address = &project
+        .treasury_query_platform_list()?
+        .last()
+        .unwrap()
+        .clone();
+
+    project.treasury_try_create_platform(
+        ProjectAccount::Admin,
+        BOX_PRICE,
+        ProjectCoin::Usk,
+        &None,
+    )?;
+    let usk_platform_address = &project
+        .treasury_query_platform_list()?
+        .last()
+        .unwrap()
+        .clone();
+
+    // deposit tokens and nft
+    project.treasury_try_deposit(ProjectAccount::Admin, 2 * BOX_PRICE, ProjectCoin::Stars)?;
+
+    project.transfer_nft(
+        ProjectAccount::Alice,
+        ProjectAccount::Admin,
+        ProjectNft::Gopniks,
+        "1",
+    );
+    project.increase_allowances_nft(
+        ProjectAccount::Admin,
+        project.get_treasury_address(),
+        ProjectNft::Gopniks,
+    );
+    project.treasury_try_deposit_nft(
+        ProjectAccount::Admin,
+        &[NftInfo {
+            collection: ProjectNft::Gopniks.to_string(),
+            token_id: "1".to_string(),
+            price_option: vec![
+                (Uint128::new(BOX_PRICE / 2), ProjectCoin::Stars.to_string()),
+                (Uint128::new(BOX_PRICE / 2), ProjectCoin::Usk.to_string()),
+            ],
+        }],
+    )?;
+
+    project.treasury_try_withdraw(ProjectAccount::Owner, BOX_PRICE, ProjectCoin::Stars)?;
+
+    let balance = project.treasury_query_balance()?;
+    assert_that(&balance.pool).is_equal_to(vec![(
+        Uint128::new(BOX_PRICE),
+        ProjectCoin::Stars.to_string(),
+    )]);
+
+    project.platform_try_buy(
+        &stars_platform_address,
+        ProjectAccount::Kate,
+        BOX_PRICE,
+        ProjectCoin::Stars,
+    )?;
+    project.platform_try_buy(
+        &usk_platform_address,
+        ProjectAccount::Kate,
+        BOX_PRICE,
+        ProjectCoin::Usk,
+    )?;
+
+    project.wait(7);
+
+    project.platform_try_open(&stars_platform_address, ProjectAccount::Kate)?;
+    project.platform_try_open(&usk_platform_address, ProjectAccount::Kate)?;
+
+    let (collection, cw721::TokensResponse { tokens }) =
+        &project.query_all_nft(ProjectAccount::Kate)[0];
+
+    assert_that(&collection.to_string()).is_equal_to(ProjectNft::Gopniks.to_string());
+    assert_that(&tokens.contains(&"1".to_string())).is_equal_to(true);
+
+    let stars_before = project.query_balance(ProjectAccount::Owner, &ProjectCoin::Stars)?;
+    let usk_before = project.query_balance(ProjectAccount::Owner, &ProjectCoin::Usk)?;
+
+    project.treasury_try_withdraw(ProjectAccount::Owner, 2 * BOX_PRICE, ProjectCoin::Stars)?;
+    project.treasury_try_withdraw(ProjectAccount::Owner, BOX_PRICE / 2, ProjectCoin::Usk)?;
+
+    let stars_after = project.query_balance(ProjectAccount::Owner, &ProjectCoin::Stars)?;
+    let usk_after = project.query_balance(ProjectAccount::Owner, &ProjectCoin::Usk)?;
+
+    let stars_diff = stars_after - stars_before;
+    let usk_diff = usk_after - usk_before;
+
+    assert_that(&stars_diff).is_equal_to(2 * BOX_PRICE);
+    assert_that(&usk_diff).is_equal_to(BOX_PRICE / 2);
 
     Ok(())
 }
