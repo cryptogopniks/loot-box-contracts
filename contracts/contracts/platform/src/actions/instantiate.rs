@@ -12,6 +12,7 @@ use loot_box_base::{
         },
         types::{BoxStats, Config, TransferAdminState, WeightInfo},
     },
+    utils::unwrap_field,
 };
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -36,15 +37,17 @@ pub fn try_instantiate(
         (1000, "0.02"),
     ];
 
+    let worker = msg
+        .worker
+        .map(|x| deps.api.addr_validate(&x))
+        .transpose()
+        .unwrap_or(Some(sender.to_owned()));
+
     CONFIG.save(
         deps.storage,
         &Config {
-            admin: sender.to_owned(),
-            worker: msg
-                .worker
-                .map(|x| deps.api.addr_validate(&x))
-                .transpose()
-                .unwrap_or(Some(sender.to_owned())),
+            admin: unwrap_field(worker.clone(), "admin")?,
+            worker,
             treasury: deps.api.addr_validate(&msg.treasury)?,
             box_price: msg.box_price.unwrap_or(Uint128::new(BOX_PRICE_DEFAULT)),
             denom: msg.denom.unwrap_or(DENOM_DEFAULT.to_string()),

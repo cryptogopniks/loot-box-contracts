@@ -450,19 +450,19 @@ pub fn try_update_config(
     }
 
     if let Some(x) = box_price {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
         config.box_price = x;
         is_config_updated = true;
     }
 
     if let Some(x) = denom {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
         config.denom = x;
         is_config_updated = true;
     }
 
     if let Some(x) = distribution {
-        check_authorization(deps.as_ref(), &sender_address, AuthType::Admin)?;
+        check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
         if x.iter().any(|y| y.weight > Decimal::one()) {
             Err(ContractError::WeightIsOutOfRange)?;

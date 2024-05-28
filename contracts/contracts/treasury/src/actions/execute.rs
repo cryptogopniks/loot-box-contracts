@@ -271,7 +271,8 @@ pub fn try_create_platform(
     check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
     let inst_msg = platform::msg::InstantiateMsg {
-        worker: CONFIG.load(deps.storage)?.worker.map(|x| x.to_string()),
+        // admin can update worker later
+        worker: Some(CONFIG.load(deps.storage)?.admin.to_string()),
         treasury: env.contract.address.to_string(),
         box_price: Some(box_price),
         denom: Some(denom),
@@ -763,16 +764,9 @@ pub fn try_update_nft_price(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+    check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
     let mut balance = BALANCE.load(deps.storage)?;
-    let Config { worker, .. } = CONFIG.load(deps.storage)?;
-    check_authorization(
-        deps.as_ref(),
-        &sender_address,
-        AuthType::Specified {
-            allowlist: vec![worker],
-        },
-    )?;
 
     if nft_info_list.is_empty() {
         Err(ContractError::EmptyCollectionList)?;
