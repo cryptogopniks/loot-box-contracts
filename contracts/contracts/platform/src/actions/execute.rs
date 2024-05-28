@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    coins, to_json_binary, Decimal, DepsMut, Env, MessageInfo, Response, StdResult, Uint128,
+    coins, to_json_binary, Addr, Decimal, DepsMut, Env, MessageInfo, Response, StdResult, Uint128,
     WasmMsg,
 };
 
@@ -20,7 +20,7 @@ use loot_box_base::{
 
 use crate::helpers::{check_authorization, check_lockout, pick_rewards};
 
-pub fn try_buy(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+pub fn try_buy(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, asset_amount, asset_info) = check_funds(
         deps.as_ref(),
@@ -32,10 +32,6 @@ pub fn try_buy(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, 
     )?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
 
-    if asset_amount.is_zero() {
-        Err(ContractError::ZeroAmount)?;
-    }
-
     let Config {
         treasury,
         box_price,
@@ -43,9 +39,22 @@ pub fn try_buy(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, 
         ..
     } = CONFIG.load(deps.storage)?;
 
+    // check if platform is in platfrom list
+    let platfrom_list = deps.querier.query_wasm_smart::<Vec<Addr>>(
+        &treasury,
+        &loot_box_base::treasury::msg::QueryMsg::QueryPlatformList {},
+    )?;
+    if !platfrom_list.contains(&env.contract.address) {
+        Err(ContractError::PlatformIsNotInList)?;
+    }
+
     // check fund denom
     if asset_info.try_get_native()? != denom {
         Err(ContractError::WrongAssetType)?;
+    }
+
+    if asset_amount.is_zero() {
+        Err(ContractError::ZeroAmount)?;
     }
 
     // check fund amount
@@ -98,6 +107,15 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
     let mut user = USERS
         .load(deps.storage, &sender_address)
         .unwrap_or_default();
+
+    // check if platform is in platfrom list
+    let platfrom_list = deps.querier.query_wasm_smart::<Vec<Addr>>(
+        &treasury,
+        &loot_box_base::treasury::msg::QueryMsg::QueryPlatformList {},
+    )?;
+    if !platfrom_list.contains(&env.contract.address) {
+        Err(ContractError::PlatformIsNotInList)?;
+    }
 
     // don't allow to open multiple boxes in single tx
     if block_time < user.opening_date + OPENING_COOLDOWN {
@@ -255,7 +273,7 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
     Ok(response)
 }
 
-pub fn try_claim(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+pub fn try_claim(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
@@ -266,6 +284,15 @@ pub fn try_claim(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response
     let mut user = USERS
         .load(deps.storage, &sender_address)
         .unwrap_or_default();
+
+    // check if platform is in platfrom list
+    let platfrom_list = deps.querier.query_wasm_smart::<Vec<Addr>>(
+        &treasury,
+        &loot_box_base::treasury::msg::QueryMsg::QueryPlatformList {},
+    )?;
+    if !platfrom_list.contains(&env.contract.address) {
+        Err(ContractError::PlatformIsNotInList)?;
+    }
 
     // check rewards
     if user.rewards.is_zero() {

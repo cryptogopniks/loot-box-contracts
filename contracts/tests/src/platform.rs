@@ -560,3 +560,80 @@ fn deposit_withdraw_different_tokens_and_multiprice_nft() -> StdResult<()> {
 
     Ok(())
 }
+
+#[test]
+fn create_add_remove_platform() -> StdResult<()> {
+    const BOX_PRICE: u128 = 100;
+
+    let mut project = Project::new();
+    project.reset_time();
+
+    // create platforms
+    project.treasury_try_create_platform(
+        ProjectAccount::Admin,
+        BOX_PRICE,
+        ProjectCoin::Stars,
+        &None,
+    )?;
+    let stars_platform_address = &project
+        .treasury_query_platform_list()?
+        .last()
+        .unwrap()
+        .clone();
+
+    project.platform_try_buy(
+        &stars_platform_address,
+        ProjectAccount::Kate,
+        10 * BOX_PRICE,
+        ProjectCoin::Stars,
+    )?;
+
+    project.wait(1);
+
+    project.platform_try_open(&stars_platform_address, ProjectAccount::Kate)?;
+    project.wait(1);
+
+    // remove platform
+    project.treasury_try_remove_platform(ProjectAccount::Admin, stars_platform_address)?;
+    let removed_platfroms = project.treasury_query_removed_platform_list()?;
+    assert_that(&removed_platfroms).is_equal_to(vec![stars_platform_address.to_owned()]);
+
+    // check
+    let res = project
+        .platform_try_buy(
+            &stars_platform_address,
+            ProjectAccount::Kate,
+            BOX_PRICE,
+            ProjectCoin::Stars,
+        )
+        .unwrap_err();
+    assert_error(&res, ContractError::PlatformIsNotInList);
+
+    let res = project
+        .platform_try_open(&stars_platform_address, ProjectAccount::Kate)
+        .unwrap_err();
+    assert_error(&res, ContractError::PlatformIsNotInList);
+
+    // add platform and open more boxes
+    project.wait(4);
+    project.treasury_try_add_platform(ProjectAccount::Admin, stars_platform_address)?;
+    project.platform_try_buy(
+        &stars_platform_address,
+        ProjectAccount::Kate,
+        BOX_PRICE,
+        ProjectCoin::Stars,
+    )?;
+    project.platform_try_open(&stars_platform_address, ProjectAccount::Kate)?;
+
+    // remove platform and withdraw
+    project.treasury_try_remove_platform(ProjectAccount::Admin, stars_platform_address)?;
+
+    let stars_before = project.query_balance(ProjectAccount::Owner, &ProjectCoin::Stars)?;
+    project.treasury_try_withdraw(ProjectAccount::Owner, BOX_PRICE / 2, ProjectCoin::Stars)?;
+
+    let stars_after = project.query_balance(ProjectAccount::Owner, &ProjectCoin::Stars)?;
+    let stars_diff = stars_after - stars_before;
+    assert_that(&stars_diff).is_equal_to(BOX_PRICE / 2);
+
+    Ok(())
+}

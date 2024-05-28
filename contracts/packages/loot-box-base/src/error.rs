@@ -55,6 +55,9 @@ pub enum ContractError {
     #[error("Platform is not found!")]
     PlatformIsNotFound,
 
+    #[error("Platform is not in list!")]
+    PlatformIsNotInList,
+
     #[error("NFT is not found!")]
     NftIsNotFound,
 
