@@ -13,3 +13,4 @@ If the app rewards pool contains NFTs there is 50 % chance to get NFT instead of
 
 If the app has enough liquidity it will send tokens to user opened a box immediately. Otherwise rewards will be accumulated and available to claim later. The app owner must deposit initial liquidity in tokens to ensure rewards distribution timely. NFT rewards must be deposited in small amounts to keep specified price close to market prices (NFT prices can be updated but they always must be equal to one of the box rewards value).
 
+The platform contract works as box factory. It can be instantiated from treasury contract that provides common balance for all platforms. By default platform will be included in platform list but it's possible to move it removed platform list. Then users will not be able to buy new boxes on the platfrom but still be able to open, send and claim.
