@@ -520,13 +520,13 @@ fn deposit_withdraw_different_tokens_and_multiprice_nft() -> StdResult<()> {
     )]);
 
     project.platform_try_buy(
-        &stars_platform_address,
+        stars_platform_address,
         ProjectAccount::Kate,
         BOX_PRICE,
         ProjectCoin::Stars,
     )?;
     project.platform_try_buy(
-        &usk_platform_address,
+        usk_platform_address,
         ProjectAccount::Kate,
         BOX_PRICE,
         ProjectCoin::Usk,
@@ -534,8 +534,8 @@ fn deposit_withdraw_different_tokens_and_multiprice_nft() -> StdResult<()> {
 
     project.wait(7);
 
-    project.platform_try_open(&stars_platform_address, ProjectAccount::Kate)?;
-    project.platform_try_open(&usk_platform_address, ProjectAccount::Kate)?;
+    project.platform_try_open(stars_platform_address, ProjectAccount::Kate)?;
+    project.platform_try_open(usk_platform_address, ProjectAccount::Kate)?;
 
     let (collection, cw721::TokensResponse { tokens }) =
         &project.query_all_nft(ProjectAccount::Kate)[0];
@@ -582,7 +582,7 @@ fn create_add_remove_platform() -> StdResult<()> {
         .clone();
 
     project.platform_try_buy(
-        &stars_platform_address,
+        stars_platform_address,
         ProjectAccount::Kate,
         10 * BOX_PRICE,
         ProjectCoin::Stars,
@@ -590,7 +590,7 @@ fn create_add_remove_platform() -> StdResult<()> {
 
     project.wait(1);
 
-    project.platform_try_open(&stars_platform_address, ProjectAccount::Kate)?;
+    project.platform_try_open(stars_platform_address, ProjectAccount::Kate)?;
     project.wait(1);
 
     // remove platform
@@ -598,10 +598,10 @@ fn create_add_remove_platform() -> StdResult<()> {
     let removed_platfroms = project.treasury_query_removed_platform_list()?;
     assert_that(&removed_platfroms).is_equal_to(vec![stars_platform_address.to_owned()]);
 
-    // check
+    // check user can't buy
     let res = project
         .platform_try_buy(
-            &stars_platform_address,
+            stars_platform_address,
             ProjectAccount::Kate,
             BOX_PRICE,
             ProjectCoin::Stars,
@@ -609,21 +609,25 @@ fn create_add_remove_platform() -> StdResult<()> {
         .unwrap_err();
     assert_error(&res, ContractError::PlatformIsNotInList);
 
-    let res = project
-        .platform_try_open(&stars_platform_address, ProjectAccount::Kate)
-        .unwrap_err();
-    assert_error(&res, ContractError::PlatformIsNotInList);
+    // but can open, send
+    project.platform_try_open(stars_platform_address, ProjectAccount::Kate)?;
+    project.platform_try_send(
+        stars_platform_address,
+        ProjectAccount::Kate,
+        1,
+        ProjectAccount::John,
+    )?;
 
     // add platform and open more boxes
     project.wait(4);
     project.treasury_try_add_platform(ProjectAccount::Admin, stars_platform_address)?;
     project.platform_try_buy(
-        &stars_platform_address,
+        stars_platform_address,
         ProjectAccount::Kate,
         BOX_PRICE,
         ProjectCoin::Stars,
     )?;
-    project.platform_try_open(&stars_platform_address, ProjectAccount::Kate)?;
+    project.platform_try_open(stars_platform_address, ProjectAccount::Kate)?;
 
     // remove platform and withdraw
     project.treasury_try_remove_platform(ProjectAccount::Admin, stars_platform_address)?;

@@ -20,17 +20,17 @@
               "INIT_MSG": "{}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{}}",
-              "CODE": 4193,
+              "CODE": 4198,
               "ADDRESS": ""
             },
             {
               "WASM": "treasury.wasm",
               "LABEL": "treasury",
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"platform_code_id\":4193}",
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"platform_code_id\":4198}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{}}",
-              "CODE": 4194,
-              "ADDRESS": "stars1cjakmjf746sjwpmhn5swn6j3ttv4hradg5sl2ucam6uc2zq70v8s0kxje6"
+              "CODE": 4199,
+              "ADDRESS": "stars1e9kkg852sz22703v32dgn2fnhau3sffzrk0adg0zks9nue3huclqy8qrz9"
             }
           ],
           "IBC": []

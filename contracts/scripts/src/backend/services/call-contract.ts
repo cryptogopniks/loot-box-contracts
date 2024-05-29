@@ -73,6 +73,21 @@ async function main() {
       },
       gasPrice
     );
+    await h.treasury.cwCreatePlatform(
+      {
+        boxPrice: 200_000_000,
+        denom: DENOM,
+        distribution: [
+          { box_rewards: `${0}`, weight: "0.282465" },
+          { box_rewards: `${100_000_000}`, weight: "0.3995" },
+          { box_rewards: `${300_000_000}`, weight: "0.13316" },
+          { box_rewards: `${400_000_000}`, weight: "0.099875" },
+          { box_rewards: `${500_000_000}`, weight: "0.0799" },
+          { box_rewards: `${2_000_000_000}`, weight: "0.0051" },
+        ],
+      },
+      gasPrice
+    );
 
     const [platformAddress] = await treasury.cwQueryPlatformList();
     const platformConfig = await (

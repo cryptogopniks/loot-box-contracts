@@ -32,15 +32,23 @@ pub fn try_increase_balance(
             amount: None,
         },
     )?;
+
+    let platform_list = PLATFORM_LIST
+        .load(deps.storage)?
+        .into_iter()
+        .map(Some)
+        .collect::<Vec<Option<Addr>>>();
+    let removed_platform_list = REMOVED_PLATFORM_LIST
+        .load(deps.storage)?
+        .into_iter()
+        .map(Some)
+        .collect::<Vec<Option<Addr>>>();
+
     check_authorization(
         deps.as_ref(),
         &sender_address,
         AuthType::Specified {
-            allowlist: PLATFORM_LIST
-                .load(deps.storage)?
-                .into_iter()
-                .map(Some)
-                .collect(),
+            allowlist: vec![platform_list, removed_platform_list].concat(),
         },
     )?;
 
@@ -81,15 +89,23 @@ pub fn try_send(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+
+    let platform_list = PLATFORM_LIST
+        .load(deps.storage)?
+        .into_iter()
+        .map(Some)
+        .collect::<Vec<Option<Addr>>>();
+    let removed_platform_list = REMOVED_PLATFORM_LIST
+        .load(deps.storage)?
+        .into_iter()
+        .map(Some)
+        .collect::<Vec<Option<Addr>>>();
+
     check_authorization(
         deps.as_ref(),
         &sender_address,
         AuthType::Specified {
-            allowlist: PLATFORM_LIST
-                .load(deps.storage)?
-                .into_iter()
-                .map(Some)
-                .collect(),
+            allowlist: vec![platform_list, removed_platform_list].concat(),
         },
     )?;
 
@@ -140,15 +156,23 @@ pub fn try_increase_rewards(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+
+    let platform_list = PLATFORM_LIST
+        .load(deps.storage)?
+        .into_iter()
+        .map(Some)
+        .collect::<Vec<Option<Addr>>>();
+    let removed_platform_list = REMOVED_PLATFORM_LIST
+        .load(deps.storage)?
+        .into_iter()
+        .map(Some)
+        .collect::<Vec<Option<Addr>>>();
+
     check_authorization(
         deps.as_ref(),
         &sender_address,
         AuthType::Specified {
-            allowlist: PLATFORM_LIST
-                .load(deps.storage)?
-                .into_iter()
-                .map(Some)
-                .collect(),
+            allowlist: vec![platform_list, removed_platform_list].concat(),
         },
     )?;
 
@@ -188,15 +212,23 @@ pub fn try_send_nft(
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+
+    let platform_list = PLATFORM_LIST
+        .load(deps.storage)?
+        .into_iter()
+        .map(Some)
+        .collect::<Vec<Option<Addr>>>();
+    let removed_platform_list = REMOVED_PLATFORM_LIST
+        .load(deps.storage)?
+        .into_iter()
+        .map(Some)
+        .collect::<Vec<Option<Addr>>>();
+
     check_authorization(
         deps.as_ref(),
         &sender_address,
         AuthType::Specified {
-            allowlist: PLATFORM_LIST
-                .load(deps.storage)?
-                .into_iter()
-                .map(Some)
-                .collect(),
+            allowlist: vec![platform_list, removed_platform_list].concat(),
         },
     )?;
 

@@ -108,15 +108,6 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
         .load(deps.storage, &sender_address)
         .unwrap_or_default();
 
-    // check if platform is in platfrom list
-    let platfrom_list = deps.querier.query_wasm_smart::<Vec<Addr>>(
-        &treasury,
-        &loot_box_base::treasury::msg::QueryMsg::QueryPlatformList {},
-    )?;
-    if !platfrom_list.contains(&env.contract.address) {
-        Err(ContractError::PlatformIsNotInList)?;
-    }
-
     // don't allow to open multiple boxes in single tx
     if block_time < user.opening_date + OPENING_COOLDOWN {
         Err(ContractError::MultipleBoxesPerTx)?;
@@ -273,7 +264,7 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
     Ok(response)
 }
 
-pub fn try_claim(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+pub fn try_claim(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::Any)?;
@@ -284,15 +275,6 @@ pub fn try_claim(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response,
     let mut user = USERS
         .load(deps.storage, &sender_address)
         .unwrap_or_default();
-
-    // check if platform is in platfrom list
-    let platfrom_list = deps.querier.query_wasm_smart::<Vec<Addr>>(
-        &treasury,
-        &loot_box_base::treasury::msg::QueryMsg::QueryPlatformList {},
-    )?;
-    if !platfrom_list.contains(&env.contract.address) {
-        Err(ContractError::PlatformIsNotInList)?;
-    }
 
     // check rewards
     if user.rewards.is_zero() {

@@ -366,9 +366,11 @@ async function getCwExecHelpers(
     {
       admin,
       worker,
+      platformCodeId,
     }: {
       admin?: string;
       worker?: string;
+      platformCodeId?: number;
     },
     gasPrice: string
   ) {
@@ -377,6 +379,7 @@ async function getCwExecHelpers(
         treasuryMsgComposer.updateConfig({
           admin,
           worker,
+          platformCodeId,
         }),
       ],
       gasPrice
