@@ -4,6 +4,12 @@ pub mod platform {
     pub mod types;
 }
 
+pub mod treasury {
+    pub mod msg;
+    pub mod state;
+    pub mod types;
+}
+
 pub mod hash_generator {
     pub mod types;
 }

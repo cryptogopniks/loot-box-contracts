@@ -10,6 +10,7 @@ export interface InstantiateMsg {
   box_price?: Uint128 | null;
   denom?: string | null;
   distribution?: WeightInfo[] | null;
+  treasury: string;
   worker?: string | null;
 }
 export interface WeightInfo {
@@ -30,12 +31,6 @@ export type ExecuteMsg = {
 } | {
   accept_admin_role: {};
 } | {
-  deposit: {};
-} | {
-  deposit_nft: {
-    nft_info_list: NftInfoForString[];
-  };
-} | {
   update_config: {
     admin?: string | null;
     box_price?: Uint128 | null;
@@ -47,30 +42,11 @@ export type ExecuteMsg = {
   lock: {};
 } | {
   unlock: {};
-} | {
-  withdraw: {
-    amount: Uint128;
-  };
-} | {
-  withdraw_nft: {
-    nft_info_list: NftInfoForString[];
-  };
-} | {
-  update_nft_price: {
-    nft_info_list: NftInfoForString[];
-  };
 };
-export interface NftInfoForString {
-  collection: string;
-  price: Uint128;
-  token_id: string;
-}
 export type QueryMsg = {
   query_config: {};
 } | {
   query_box_stats: {};
-} | {
-  query_balance: {};
 } | {
   query_user: {
     address: string;
@@ -84,18 +60,6 @@ export type QueryMsg = {
 export interface MigrateMsg {
   version: string;
 }
-export type Addr = string;
-export interface Balance {
-  deposited: Uint128;
-  nft_pool: NftInfoForAddr[];
-  pool: Uint128;
-  rewards: Uint128;
-}
-export interface NftInfoForAddr {
-  collection: Addr;
-  price: Uint128;
-  token_id: string;
-}
 export interface BoxStats {
   opened: OpeningInfo[];
   sold: Uint128;
@@ -104,11 +68,13 @@ export interface OpeningInfo {
   box_rewards: Uint128;
   opened: Uint128;
 }
+export type Addr = string;
 export interface Config {
   admin: Addr;
   box_price: Uint128;
   denom: string;
   distribution: WeightInfo[];
+  treasury: Addr;
   worker?: Addr | null;
 }
 export interface UserInfo {

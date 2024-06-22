@@ -1,9 +1,13 @@
 import CONFIG_JSON from "../config/config.json";
 import { getLast, l, logAndReturn } from "../utils";
 import { toBase64, fromUtf8 } from "@cosmjs/encoding";
+import { TreasuryMsgComposer } from "../codegen/Treasury.message-composer";
+import { TreasuryQueryClient } from "../codegen/Treasury.client";
 import { PlatformMsgComposer } from "../codegen/Platform.message-composer";
 import { PlatformQueryClient } from "../codegen/Platform.client";
 import { getChainOptionById, getContractByWasm } from "../config/config-utils";
+import { WeightInfo } from "../codegen/Platform.types";
+import { NftInfoForString } from "../codegen/Treasury.types";
 import {
   getCwClient,
   signAndBroadcastWrapper,
@@ -36,7 +40,6 @@ import {
   QueryOwnerOf,
   OwnerOfResponse,
 } from "../interfaces";
-import { NftInfoForString, WeightInfo } from "../codegen/Platform.types";
 
 function addSingleTokenToComposerObj(
   obj: MsgExecuteContractEncodeObject,
@@ -136,7 +139,14 @@ async function getCwExecHelpers(
     OPTION: { CONTRACTS },
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
+  let TREASURY_CONTRACT: ContractInfo | undefined;
   let PLATFORM_CONTRACT: ContractInfo | undefined;
+
+  try {
+    TREASURY_CONTRACT = getContractByWasm(CONTRACTS, "treasury.wasm");
+  } catch (error) {
+    l(error);
+  }
 
   try {
     PLATFORM_CONTRACT = getContractByWasm(CONTRACTS, "platform.wasm");
@@ -149,6 +159,11 @@ async function getCwExecHelpers(
 
   const signingClient = cwClient.client as SigningCosmWasmClient;
   const _signAndBroadcast = signAndBroadcastWrapper(signingClient, owner);
+
+  const treasuryMsgComposer = new TreasuryMsgComposer(
+    owner,
+    TREASURY_CONTRACT ? TREASURY_CONTRACT.ADDRESS : ""
+  );
 
   const platformMsgComposer = new PlatformMsgComposer(
     owner,
@@ -176,6 +191,238 @@ async function getCwExecHelpers(
   ) {
     return await _msgWrapperWithGasPrice(
       [getRevokeCollectionMsg(collectionAddress, senderAddress, operator)],
+      gasPrice
+    );
+  }
+
+  // treasury
+
+  async function cwIncreaseBalance(
+    amount: number,
+    denom: string,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        addSingleTokenToComposerObj(
+          treasuryMsgComposer.increaseBalance(),
+          amount,
+          {
+            native: { denom },
+          }
+        ),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwTreasurySend(
+    amount: number,
+    denom: string,
+    recipient: string,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        treasuryMsgComposer.send({
+          amount: amount.toString(),
+          denom,
+          recipient,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwIncreaseRewards(
+    amount: number,
+    denom: string,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        treasuryMsgComposer.increaseRewards({
+          amount: amount.toString(),
+          denom,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwSendNft(
+    collection: string,
+    tokenId: string,
+    recipient: string,
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        treasuryMsgComposer.sendNft({
+          collection,
+          tokenId,
+          recipient,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwTreasuryAcceptAdminRole(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [treasuryMsgComposer.acceptAdminRole()],
+      gasPrice
+    );
+  }
+
+  async function cwCreatePlatform(
+    {
+      boxPrice,
+      denom,
+      distribution,
+    }: {
+      boxPrice: number;
+      denom: string;
+      distribution?: WeightInfo[];
+    },
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        treasuryMsgComposer.createPlatform({
+          boxPrice: boxPrice.toString(),
+          denom,
+          distribution,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwAddPlatform(address: string, gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [treasuryMsgComposer.addPlatform({ address })],
+      gasPrice
+    );
+  }
+
+  async function cwRemovePlatform(address: string, gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [treasuryMsgComposer.removePlatform({ address })],
+      gasPrice
+    );
+  }
+
+  async function cwDeposit(amount: number, denom: string, gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [
+        addSingleTokenToComposerObj(treasuryMsgComposer.deposit(), amount, {
+          native: { denom },
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwApproveAndDepositNft(
+    senderAddress: string,
+    operator: string,
+    nftInfoList: NftInfoForString[],
+    gasPrice: string
+  ) {
+    const collectionList = Array.from(
+      new Set(nftInfoList.map((x) => x.collection))
+    );
+    const queryAllOperatorsMsg: QueryAllOperatorsMsg = {
+      all_operators: {
+        owner: senderAddress,
+      },
+    };
+
+    let msgList: MsgExecuteContractEncodeObject[] = [];
+
+    for (const collectionAddress of collectionList) {
+      const { operators }: QueryAllOperatorsResponse =
+        await signingClient.queryContractSmart(
+          collectionAddress,
+          queryAllOperatorsMsg
+        );
+
+      const targetOperator = operators.find((x) => x.spender === operator);
+
+      if (!targetOperator) {
+        msgList.push(
+          getApproveCollectionMsg(collectionAddress, senderAddress, operator)
+        );
+      }
+    }
+
+    msgList.push(treasuryMsgComposer.depositNft({ nftInfoList }));
+
+    return await _msgWrapperWithGasPrice(msgList, gasPrice);
+  }
+
+  async function cwTreasuryUpdateConfig(
+    {
+      admin,
+      worker,
+      platformCodeId,
+    }: {
+      admin?: string;
+      worker?: string;
+      platformCodeId?: number;
+    },
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [
+        treasuryMsgComposer.updateConfig({
+          admin,
+          worker,
+          platformCodeId,
+        }),
+      ],
+      gasPrice
+    );
+  }
+
+  async function cwTreasuryLock(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [treasuryMsgComposer.lock()],
+      gasPrice
+    );
+  }
+
+  async function cwTreasuryUnlock(gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [treasuryMsgComposer.unlock()],
+      gasPrice
+    );
+  }
+
+  async function cwWithdraw(amount: number, denom: string, gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [treasuryMsgComposer.withdraw({ amount: amount.toString(), denom })],
+      gasPrice
+    );
+  }
+
+  async function cwWithdrawNft(
+    nftInfoList: NftInfoForString[],
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [treasuryMsgComposer.withdrawNft({ nftInfoList })],
+      gasPrice
+    );
+  }
+
+  async function cwUpdateNftPrice(
+    nftInfoList: NftInfoForString[],
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [treasuryMsgComposer.updateNftPrice({ nftInfoList })],
       gasPrice
     );
   }
@@ -217,7 +464,11 @@ async function getCwExecHelpers(
     );
   }
 
-  async function cwSend(amount: number, recipient: string, gasPrice: string) {
+  async function cwPlatformSend(
+    amount: number,
+    recipient: string,
+    gasPrice: string
+  ) {
     return await _msgWrapperWithGasPrice(
       [platformMsgComposer.send({ amount: amount.toString(), recipient })],
       gasPrice
@@ -229,55 +480,6 @@ async function getCwExecHelpers(
       [platformMsgComposer.acceptAdminRole()],
       gasPrice
     );
-  }
-
-  async function cwDeposit(amount: number, denom: string, gasPrice: string) {
-    return await _msgWrapperWithGasPrice(
-      [
-        addSingleTokenToComposerObj(platformMsgComposer.deposit(), amount, {
-          native: { denom },
-        }),
-      ],
-      gasPrice
-    );
-  }
-
-  async function cwApproveAndDepositNft(
-    senderAddress: string,
-    operator: string,
-    nftInfoList: NftInfoForString[],
-    gasPrice: string
-  ) {
-    const collectionList = Array.from(
-      new Set(nftInfoList.map((x) => x.collection))
-    );
-    const queryAllOperatorsMsg: QueryAllOperatorsMsg = {
-      all_operators: {
-        owner: senderAddress,
-      },
-    };
-
-    let msgList: MsgExecuteContractEncodeObject[] = [];
-
-    for (const collectionAddress of collectionList) {
-      const { operators }: QueryAllOperatorsResponse =
-        await signingClient.queryContractSmart(
-          collectionAddress,
-          queryAllOperatorsMsg
-        );
-
-      const targetOperator = operators.find((x) => x.spender === operator);
-
-      if (!targetOperator) {
-        msgList.push(
-          getApproveCollectionMsg(collectionAddress, senderAddress, operator)
-        );
-      }
-    }
-
-    msgList.push(platformMsgComposer.depositNft({ nftInfoList }));
-
-    return await _msgWrapperWithGasPrice(msgList, gasPrice);
   }
 
   async function cwPlatformUpdateConfig(
@@ -310,63 +512,49 @@ async function getCwExecHelpers(
     );
   }
 
-  async function cwLock(gasPrice: string) {
+  async function cwPlatformLock(gasPrice: string) {
     return await _msgWrapperWithGasPrice(
       [platformMsgComposer.lock()],
       gasPrice
     );
   }
 
-  async function cwUnlock(gasPrice: string) {
+  async function cwPlatformUnlock(gasPrice: string) {
     return await _msgWrapperWithGasPrice(
       [platformMsgComposer.unlock()],
       gasPrice
     );
   }
 
-  async function cwWithdraw(amount: number, gasPrice: string) {
-    return await _msgWrapperWithGasPrice(
-      [platformMsgComposer.withdraw({ amount: amount.toString() })],
-      gasPrice
-    );
-  }
-
-  async function cwWithdrawNft(
-    nftInfoList: NftInfoForString[],
-    gasPrice: string
-  ) {
-    return await _msgWrapperWithGasPrice(
-      [platformMsgComposer.withdrawNft({ nftInfoList })],
-      gasPrice
-    );
-  }
-
-  async function cwUpdateNftPrice(
-    nftInfoList: NftInfoForString[],
-    gasPrice: string
-  ) {
-    return await _msgWrapperWithGasPrice(
-      [platformMsgComposer.updateNftPrice({ nftInfoList })],
-      gasPrice
-    );
-  }
-
   return {
     utils: { cwRevoke },
+    treasury: {
+      cwIncreaseBalance,
+      cwSend: cwTreasurySend,
+      cwIncreaseRewards,
+      cwSendNft,
+      cwAcceptAdminRole: cwTreasuryAcceptAdminRole,
+      cwCreatePlatform,
+      cwAddPlatform,
+      cwRemovePlatform,
+      cwDeposit,
+      cwApproveAndDepositNft,
+      cwUpdateConfig: cwTreasuryUpdateConfig,
+      cwLock: cwTreasuryLock,
+      cwUnlock: cwTreasuryUnlock,
+      cwWithdraw,
+      cwWithdrawNft,
+      cwUpdateNftPrice,
+    },
     platform: {
       cwBuy,
       cwOpen,
       cwClaim,
-      cwSend,
+      cwSend: cwPlatformSend,
       cwAcceptAdminRole: cwPlatformAcceptAdminRole,
-      cwDeposit,
-      cwApproveAndDepositNft,
       cwUpdateConfig: cwPlatformUpdateConfig,
-      cwLock,
-      cwUnlock,
-      cwWithdraw,
-      cwWithdrawNft,
-      cwUpdateNftPrice,
+      cwLock: cwPlatformLock,
+      cwUnlock: cwPlatformUnlock,
 
       cwOpenMultiple,
     },
@@ -383,7 +571,14 @@ async function getCwQueryHelpers(
     OPTION: { CONTRACTS },
   } = getChainOptionById(CHAIN_CONFIG, chainId);
 
+  let TREASURY_CONTRACT: ContractInfo | undefined;
   let PLATFORM_CONTRACT: ContractInfo | undefined;
+
+  try {
+    TREASURY_CONTRACT = getContractByWasm(CONTRACTS, "treasury.wasm");
+  } catch (error) {
+    l(error);
+  }
 
   try {
     PLATFORM_CONTRACT = getContractByWasm(CONTRACTS, "platform.wasm");
@@ -395,6 +590,11 @@ async function getCwQueryHelpers(
   if (!cwClient) throw new Error("cwClient is not found!");
 
   const cosmwasmQueryClient: CosmWasmClient = cwClient.client;
+
+  const treasuryQueryClient = new TreasuryQueryClient(
+    cosmwasmQueryClient,
+    TREASURY_CONTRACT ? TREASURY_CONTRACT.ADDRESS : ""
+  );
 
   const platformQueryClient = new PlatformQueryClient(
     cosmwasmQueryClient,
@@ -483,6 +683,28 @@ async function getCwQueryHelpers(
     return logAndReturn(res);
   }
 
+  // treasury
+
+  async function cwTreasuryQueryConfig() {
+    const res = await treasuryQueryClient.queryConfig();
+    return logAndReturn(res);
+  }
+
+  async function cwQueryBalance() {
+    const res = await treasuryQueryClient.queryBalance();
+    return logAndReturn(res);
+  }
+
+  async function cwQueryPlatformList() {
+    const res = await treasuryQueryClient.queryPlatformList();
+    return logAndReturn(res);
+  }
+
+  async function cwQueryRemovedPlatformList() {
+    const res = await treasuryQueryClient.queryRemovedPlatformList();
+    return logAndReturn(res);
+  }
+
   // platform
 
   async function cwPlatformQueryConfig() {
@@ -492,11 +714,6 @@ async function getCwQueryHelpers(
 
   async function cwQueryBoxStats() {
     const res = await platformQueryClient.queryBoxStats();
-    return logAndReturn(res);
-  }
-
-  async function cwQueryBalance() {
-    const res = await platformQueryClient.queryBalance();
     return logAndReturn(res);
   }
 
@@ -517,10 +734,15 @@ async function getCwQueryHelpers(
       cwQueryBalanceInNft,
       cwQueryNftOwner,
     },
+    treasury: {
+      cwQueryConfig: cwTreasuryQueryConfig,
+      cwQueryBalance,
+      cwQueryPlatformList,
+      cwQueryRemovedPlatformList,
+    },
     platfrorm: {
       cwQueryConfig: cwPlatformQueryConfig,
       cwQueryBoxStats,
-      cwQueryBalance,
       cwQueryUser,
       cwQueryUserList,
     },

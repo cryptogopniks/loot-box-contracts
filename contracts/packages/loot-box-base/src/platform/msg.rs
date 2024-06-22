@@ -2,7 +2,7 @@ use cosmwasm_schema::{cw_serde, QueryResponses};
 
 use cosmwasm_std::{Addr, Uint128};
 
-use crate::platform::types::{NftInfo, UserInfo, WeightInfo};
+use crate::platform::types::{UserInfo, WeightInfo};
 
 #[cw_serde]
 pub struct MigrateMsg {
@@ -12,7 +12,7 @@ pub struct MigrateMsg {
 #[cw_serde]
 pub struct InstantiateMsg {
     pub worker: Option<String>,
-
+    pub treasury: String,
     pub box_price: Option<Uint128>,
     pub denom: Option<String>,
     pub distribution: Option<Vec<WeightInfo>>,
@@ -36,16 +36,9 @@ pub enum ExecuteMsg {
     AcceptAdminRole {},
 
     // admin, worker
-    Deposit {},
-
-    DepositNft {
-        nft_info_list: Vec<NftInfo<String>>,
-    },
-
     UpdateConfig {
         admin: Option<String>,
         worker: Option<String>,
-
         box_price: Option<Uint128>,
         denom: Option<String>,
         distribution: Option<Vec<WeightInfo>>,
@@ -54,19 +47,6 @@ pub enum ExecuteMsg {
     Lock {},
 
     Unlock {},
-
-    // worker
-    Withdraw {
-        amount: Uint128,
-    },
-
-    WithdrawNft {
-        nft_info_list: Vec<NftInfo<String>>,
-    },
-
-    UpdateNftPrice {
-        nft_info_list: Vec<NftInfo<String>>,
-    },
 }
 
 #[cw_serde]
@@ -77,9 +57,6 @@ pub enum QueryMsg {
 
     #[returns(crate::platform::types::BoxStats)]
     QueryBoxStats {},
-
-    #[returns(crate::platform::types::Balance)]
-    QueryBalance {},
 
     #[returns(crate::platform::types::UserInfo)]
     QueryUser { address: String },

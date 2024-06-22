@@ -6,12 +6,11 @@
 
 import { CosmWasmClient, SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { Coin, StdFee } from "@cosmjs/amino";
-import { Uint128, Decimal, InstantiateMsg, WeightInfo, ExecuteMsg, NftInfoForString, QueryMsg, MigrateMsg, Addr, Balance, NftInfoForAddr, BoxStats, OpeningInfo, Config, UserInfo, ArrayOfQueryUserListResponseItem, QueryUserListResponseItem } from "./Platform.types";
+import { Uint128, Decimal, InstantiateMsg, WeightInfo, ExecuteMsg, QueryMsg, MigrateMsg, BoxStats, OpeningInfo, Addr, Config, UserInfo, ArrayOfQueryUserListResponseItem, QueryUserListResponseItem } from "./Platform.types";
 export interface PlatformReadOnlyInterface {
   contractAddress: string;
   queryConfig: () => Promise<Config>;
   queryBoxStats: () => Promise<BoxStats>;
-  queryBalance: () => Promise<Balance>;
   queryUser: ({
     address
   }: {
@@ -33,7 +32,6 @@ export class PlatformQueryClient implements PlatformReadOnlyInterface {
     this.contractAddress = contractAddress;
     this.queryConfig = this.queryConfig.bind(this);
     this.queryBoxStats = this.queryBoxStats.bind(this);
-    this.queryBalance = this.queryBalance.bind(this);
     this.queryUser = this.queryUser.bind(this);
     this.queryUserList = this.queryUserList.bind(this);
   }
@@ -45,11 +43,6 @@ export class PlatformQueryClient implements PlatformReadOnlyInterface {
   queryBoxStats = async (): Promise<BoxStats> => {
     return this.client.queryContractSmart(this.contractAddress, {
       query_box_stats: {}
-    });
-  };
-  queryBalance = async (): Promise<Balance> => {
-    return this.client.queryContractSmart(this.contractAddress, {
-      query_balance: {}
     });
   };
   queryUser = async ({
@@ -92,12 +85,6 @@ export interface PlatformInterface extends PlatformReadOnlyInterface {
     recipient: string;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   acceptAdminRole: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  deposit: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  depositNft: ({
-    nftInfoList
-  }: {
-    nftInfoList: NftInfoForString[];
-  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   updateConfig: ({
     admin,
     boxPrice,
@@ -113,21 +100,6 @@ export interface PlatformInterface extends PlatformReadOnlyInterface {
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   lock: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   unlock: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  withdraw: ({
-    amount
-  }: {
-    amount: Uint128;
-  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  withdrawNft: ({
-    nftInfoList
-  }: {
-    nftInfoList: NftInfoForString[];
-  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
-  updateNftPrice: ({
-    nftInfoList
-  }: {
-    nftInfoList: NftInfoForString[];
-  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
 }
 export class PlatformClient extends PlatformQueryClient implements PlatformInterface {
   client: SigningCosmWasmClient;
@@ -143,14 +115,9 @@ export class PlatformClient extends PlatformQueryClient implements PlatformInter
     this.claim = this.claim.bind(this);
     this.send = this.send.bind(this);
     this.acceptAdminRole = this.acceptAdminRole.bind(this);
-    this.deposit = this.deposit.bind(this);
-    this.depositNft = this.depositNft.bind(this);
     this.updateConfig = this.updateConfig.bind(this);
     this.lock = this.lock.bind(this);
     this.unlock = this.unlock.bind(this);
-    this.withdraw = this.withdraw.bind(this);
-    this.withdrawNft = this.withdrawNft.bind(this);
-    this.updateNftPrice = this.updateNftPrice.bind(this);
   }
   buy = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
@@ -186,22 +153,6 @@ export class PlatformClient extends PlatformQueryClient implements PlatformInter
       accept_admin_role: {}
     }, fee, memo, _funds);
   };
-  deposit = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      deposit: {}
-    }, fee, memo, _funds);
-  };
-  depositNft = async ({
-    nftInfoList
-  }: {
-    nftInfoList: NftInfoForString[];
-  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      deposit_nft: {
-        nft_info_list: nftInfoList
-      }
-    }, fee, memo, _funds);
-  };
   updateConfig = async ({
     admin,
     boxPrice,
@@ -233,39 +184,6 @@ export class PlatformClient extends PlatformQueryClient implements PlatformInter
   unlock = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       unlock: {}
-    }, fee, memo, _funds);
-  };
-  withdraw = async ({
-    amount
-  }: {
-    amount: Uint128;
-  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      withdraw: {
-        amount
-      }
-    }, fee, memo, _funds);
-  };
-  withdrawNft = async ({
-    nftInfoList
-  }: {
-    nftInfoList: NftInfoForString[];
-  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      withdraw_nft: {
-        nft_info_list: nftInfoList
-      }
-    }, fee, memo, _funds);
-  };
-  updateNftPrice = async ({
-    nftInfoList
-  }: {
-    nftInfoList: NftInfoForString[];
-  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
-    return await this.client.execute(this.sender, this.contractAddress, {
-      update_nft_price: {
-        nft_info_list: nftInfoList
-      }
     }, fee, memo, _funds);
   };
 }

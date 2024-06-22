@@ -11,14 +11,11 @@ use loot_box_base::{
     error::parse_err,
 };
 
-use crate::helpers::{
-    platform::PlatformExtension,
-    suite::{
-        codes::WithCodes,
-        types::{
-            GetDecimals, ProjectAccount, ProjectAsset, ProjectCoin, ProjectNft, ProjectToken,
-            WrappedResponse, DEFAULT_DECIMALS,
-        },
+use crate::helpers::suite::{
+    codes::WithCodes,
+    types::{
+        GetDecimals, ProjectAccount, ProjectAsset, ProjectCoin, ProjectNft, ProjectToken,
+        WrappedResponse, DEFAULT_DECIMALS,
     },
 };
 
@@ -35,13 +32,14 @@ pub struct Project {
 
     // contract code id
     platform_code_id: u64,
+    treasury_code_id: u64,
 
     // package address
     gopniks_address: Addr,
     pinjeons_address: Addr,
 
     // contract address
-    platform_address: Addr,
+    treasury_address: Addr,
     //
     // other
 }
@@ -56,11 +54,12 @@ impl Project {
             cw20_base_code_id: 0,
             // cw721_base_code_id: 0,
             platform_code_id: 0,
+            treasury_code_id: 0,
 
             gopniks_address: Addr::unchecked(""),
             pinjeons_address: Addr::unchecked(""),
 
-            platform_address: Addr::unchecked(""),
+            treasury_address: Addr::unchecked(""),
         }
     }
 
@@ -75,6 +74,7 @@ impl Project {
 
         // contracts
         let platform_code_id = project.store_platform_code();
+        let treasury_code_id = project.store_treasury_code();
 
         // instantiate packages
 
@@ -110,34 +110,26 @@ impl Project {
         }
 
         // instantiate contracts
-        let platform_address =
-            project.instantiate_platform(platform_code_id, &None, &None, &None, &None);
+        let treasury_address = project.instantiate_treasury(
+            treasury_code_id,
+            platform_code_id,
+            &Some(ProjectAccount::Owner),
+        );
 
         project = Self {
             cw20_base_code_id,
             platform_code_id,
+            treasury_code_id,
 
             gopniks_address,
             pinjeons_address,
 
-            platform_address,
+            treasury_address,
 
             ..project
         };
 
         // prepare contracts
-
-        // set worker
-        project
-            .platform_try_update_config(
-                ProjectAccount::Admin,
-                &None,
-                &Some(ProjectAccount::Owner),
-                &None,
-                &None,
-                &None,
-            )
-            .unwrap();
 
         project
     }
@@ -151,6 +143,10 @@ impl Project {
         self.platform_code_id
     }
 
+    pub fn get_treasury_code_id(&self) -> u64 {
+        self.treasury_code_id
+    }
+
     // package address getters
     pub fn get_gopniks_address(&self) -> Addr {
         self.gopniks_address.clone()
@@ -161,8 +157,8 @@ impl Project {
     }
 
     // contract address getters
-    pub fn get_platform_address(&self) -> Addr {
-        self.platform_address.clone()
+    pub fn get_treasury_address(&self) -> Addr {
+        self.treasury_address.clone()
     }
 
     // utils
@@ -419,7 +415,7 @@ pub fn assert_error<S: std::fmt::Debug + ToString>(
 
 pub fn add_funds_to_exec_msg<T: Serialize + std::fmt::Debug>(
     project: &mut Project,
-    sender: ProjectAccount,
+    sender: impl Into<Addr>,
     contract_address: &Addr,
     msg: &T,
     amount: impl Into<Uint128>,

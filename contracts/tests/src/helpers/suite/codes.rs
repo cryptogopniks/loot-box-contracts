@@ -20,6 +20,7 @@ pub trait WithCodes {
 
     // store contracts
     fn store_platform_code(&mut self) -> u64;
+    fn store_treasury_code(&mut self) -> u64;
 
     // instantiate packages
     fn instantiate_cw20_base_token(&mut self, code_id: u64, project_token: ProjectToken) -> Addr;
@@ -30,9 +31,17 @@ pub trait WithCodes {
         &mut self,
         platform_code_id: u64,
         worker: &Option<ProjectAccount>,
+        treasury: &Addr,
         box_price: &Option<u128>,
         denom: &Option<ProjectCoin>,
         distribution: &Option<Vec<WeightInfo>>,
+    ) -> Addr;
+
+    fn instantiate_treasury(
+        &mut self,
+        treasury_code_id: u64,
+        platform_code_id: u64,
+        worker: &Option<ProjectAccount>,
     ) -> Addr;
 
     fn migrate_contract(
@@ -72,6 +81,18 @@ impl WithCodes for Project {
             )
             .with_reply(platform::contract::reply)
             .with_migrate(platform::contract::migrate),
+        ))
+    }
+
+    fn store_treasury_code(&mut self) -> u64 {
+        self.app.store_code(Box::new(
+            ContractWrapper::new(
+                treasury::contract::execute,
+                treasury::contract::instantiate,
+                treasury::contract::query,
+            )
+            .with_reply(treasury::contract::reply)
+            .with_migrate(treasury::contract::migrate),
         ))
     }
 
@@ -137,6 +158,7 @@ impl WithCodes for Project {
         &mut self,
         platform_code_id: u64,
         worker: &Option<ProjectAccount>,
+        treasury: &Addr,
         box_price: &Option<u128>,
         denom: &Option<ProjectCoin>,
         distribution: &Option<Vec<WeightInfo>>,
@@ -146,9 +168,26 @@ impl WithCodes for Project {
             "platform",
             &loot_box_base::platform::msg::InstantiateMsg {
                 worker: worker.as_ref().map(|x| x.to_string()),
+                treasury: treasury.to_string(),
                 box_price: box_price.as_ref().map(|x| Uint128::new(x.to_owned())),
                 denom: denom.as_ref().map(|x| x.to_string()),
                 distribution: distribution.to_owned(),
+            },
+        )
+    }
+
+    fn instantiate_treasury(
+        &mut self,
+        treasury_code_id: u64,
+        platform_code_id: u64,
+        worker: &Option<ProjectAccount>,
+    ) -> Addr {
+        self.instantiate_contract(
+            treasury_code_id,
+            "treasury",
+            &loot_box_base::treasury::msg::InstantiateMsg {
+                worker: worker.as_ref().map(|x| x.to_string()),
+                platform_code_id: Some(platform_code_id),
             },
         )
     }

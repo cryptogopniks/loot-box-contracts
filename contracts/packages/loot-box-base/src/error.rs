@@ -49,6 +49,15 @@ pub enum ContractError {
     #[error("Currency can not be changed after adding liquidity!")]
     ChangingCurrency,
 
+    #[error("Platform already is added!")]
+    PlatformDuplication,
+
+    #[error("Platform is not found!")]
+    PlatformIsNotFound,
+
+    #[error("Platform is not in list!")]
+    PlatformIsNotInList,
+
     #[error("NFT is not found!")]
     NftIsNotFound,
 

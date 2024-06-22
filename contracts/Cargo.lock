@@ -1134,6 +1134,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "thiserror",
+ "treasury",
 ]
 
 [[package]]
@@ -1154,6 +1155,20 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.48",
+]
+
+[[package]]
+name = "treasury"
+version = "1.0.0"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-storage-plus 1.2.0",
+ "cw2 1.1.2",
+ "cw721 0.18.0",
+ "loot-box-base",
+ "semver",
+ "serde",
 ]
 
 [[package]]

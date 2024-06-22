@@ -3,8 +3,8 @@ use cw_storage_plus::Bound;
 
 use loot_box_base::platform::{
     msg::QueryUserListResponseItem,
-    state::{BALANCE, BOX_STATS, CONFIG, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, USERS},
-    types::{Balance, BoxStats, Config, UserInfo},
+    state::{BOX_STATS, CONFIG, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, USERS},
+    types::{BoxStats, Config, UserInfo},
 };
 
 pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
@@ -13,10 +13,6 @@ pub fn query_config(deps: Deps, _env: Env) -> StdResult<Config> {
 
 pub fn query_box_stats(deps: Deps, _env: Env) -> StdResult<BoxStats> {
     BOX_STATS.load(deps.storage)
-}
-
-pub fn query_balance(deps: Deps, _env: Env) -> StdResult<Balance> {
-    BALANCE.load(deps.storage)
 }
 
 pub fn query_user(deps: Deps, _env: Env, address: String) -> StdResult<UserInfo> {

@@ -7,11 +7,12 @@ use loot_box_base::{
     platform::{
         msg::InstantiateMsg,
         state::{
-            BALANCE, BOX_PRICE_DEFAULT, BOX_STATS, CONFIG, CONTRACT_NAME, DENOM_DEFAULT, IS_LOCKED,
+            BOX_PRICE_DEFAULT, BOX_STATS, CONFIG, CONTRACT_NAME, DENOM_DEFAULT, IS_LOCKED,
             MEAN_WEIGHT, NORMALIZED_DECIMAL, TRANSFER_ADMIN_STATE,
         },
-        types::{Balance, BoxStats, Config, TransferAdminState, WeightInfo},
+        types::{BoxStats, Config, TransferAdminState, WeightInfo},
     },
+    utils::unwrap_field,
 };
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -36,15 +37,18 @@ pub fn try_instantiate(
         (1000, "0.02"),
     ];
 
+    let worker = msg
+        .worker
+        .map(|x| deps.api.addr_validate(&x))
+        .transpose()
+        .unwrap_or(Some(sender.to_owned()));
+
     CONFIG.save(
         deps.storage,
         &Config {
-            admin: sender.to_owned(),
-            worker: msg
-                .worker
-                .map(|x| deps.api.addr_validate(&x))
-                .transpose()
-                .unwrap_or(Some(sender.to_owned())),
+            admin: unwrap_field(worker.clone(), "admin")?,
+            worker,
+            treasury: deps.api.addr_validate(&msg.treasury)?,
             box_price: msg.box_price.unwrap_or(Uint128::new(BOX_PRICE_DEFAULT)),
             denom: msg.denom.unwrap_or(DENOM_DEFAULT.to_string()),
             distribution: msg.distribution.unwrap_or(
@@ -69,7 +73,6 @@ pub fn try_instantiate(
     )?;
 
     BOX_STATS.save(deps.storage, &BoxStats::default())?;
-    BALANCE.save(deps.storage, &Balance::default())?;
 
     NORMALIZED_DECIMAL.save(deps.storage, &str_to_dec(MEAN_WEIGHT))?;
 
