@@ -106,8 +106,8 @@ async function main() {
       await getCwQueryHelpers(chainId, RPC, platformAddress)
     ).platfrorm.cwQueryConfig();
 
-    await h.treasury.cwRemovePlatform(platformAddress, gasPrice);
-    await treasury.cwQueryRemovedPlatformList();
+    // await h.treasury.cwRemovePlatform(platformAddress, gasPrice);
+    // await treasury.cwQueryRemovedPlatformList();
   } catch (error) {
     l(error);
   }

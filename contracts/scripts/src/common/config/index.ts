@@ -8,8 +8,14 @@ export type NetworkName = "STARGAZE";
 export type Wasm = "treasury.wasm" | "platform.wasm";
 
 export const ADDRESS = {
-  ADMIN: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-  WORKER: "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+  TESTNET: {
+    ADMIN: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+    WORKER: "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+  },
+  MAINNET: {
+    ADMIN: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+    WORKER: "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+  },
 };
 
 /**
@@ -43,7 +49,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               UPDATE_MSG: toJson<PlatformTypes.ExecuteMsg>({
                 update_config: {},
               }),
-              CODE: 0,
+              CODE: 4198,
               ADDRESS: "",
             },
 
@@ -51,7 +57,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               WASM: "treasury.wasm",
               LABEL: "treasury",
               INIT_MSG: toJson<TreasuryTypes.InstantiateMsg>({
-                worker: ADDRESS.WORKER,
+                worker: ADDRESS.TESTNET.WORKER,
                 platform_code_id: $(
                   "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[WASM=platform.wasm]|CODE"
                 ),
@@ -62,8 +68,9 @@ export const CHAIN_CONFIG: ChainConfig = {
               UPDATE_MSG: toJson<TreasuryTypes.ExecuteMsg>({
                 update_config: {},
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 4199,
+              ADDRESS:
+                "stars1e9kkg852sz22703v32dgn2fnhau3sffzrk0adg0zks9nue3huclqy8qrz9",
             },
           ],
           IBC: [],
@@ -75,7 +82,40 @@ export const CHAIN_CONFIG: ChainConfig = {
           RPC_LIST: ["https://stargaze-rpc.reece.sh:443"],
           GAS_PRICE_AMOUNT: 1.1,
           STORE_CODE_GAS_MULTIPLIER: 19.5,
-          CONTRACTS: [],
+          CONTRACTS: [
+            {
+              WASM: "platform.wasm",
+              LABEL: "platform",
+              INIT_MSG: toJson({}),
+              MIGRATE_MSG: toJson<PlatformTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<PlatformTypes.ExecuteMsg>({
+                update_config: {},
+              }),
+              CODE: 281,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "treasury.wasm",
+              LABEL: "treasury",
+              INIT_MSG: toJson<TreasuryTypes.InstantiateMsg>({
+                worker: ADDRESS.MAINNET.WORKER,
+                platform_code_id: $(
+                  "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[WASM=platform.wasm]|CODE"
+                ),
+              }),
+              MIGRATE_MSG: toJson<TreasuryTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<TreasuryTypes.ExecuteMsg>({
+                update_config: {},
+              }),
+              CODE: 282,
+              ADDRESS: "",
+            },
+          ],
           IBC: [],
         },
       ],
