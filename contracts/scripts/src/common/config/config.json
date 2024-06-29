@@ -51,13 +51,13 @@
               "INIT_MSG": "{}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{}}",
-              "CODE": 281,
+              "CODE": 289,
               "ADDRESS": ""
             },
             {
               "WASM": "treasury.wasm",
               "LABEL": "treasury",
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"platform_code_id\":281}",
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"platform_code_id\":289}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{}}",
               "CODE": 282,

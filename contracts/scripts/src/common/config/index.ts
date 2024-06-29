@@ -93,7 +93,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               UPDATE_MSG: toJson<PlatformTypes.ExecuteMsg>({
                 update_config: {},
               }),
-              CODE: 281,
+              CODE: 289,
               ADDRESS: "",
             },
 
@@ -113,7 +113,8 @@ export const CHAIN_CONFIG: ChainConfig = {
                 update_config: {},
               }),
               CODE: 282,
-              ADDRESS: "",
+              ADDRESS:
+                "stars1ev6skugnl2lgsj3ts6y8j4563j7qs4vtlvgqgfcwqum840xzu7tqythx58",
             },
           ],
           IBC: [],
