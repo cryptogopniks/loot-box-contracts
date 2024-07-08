@@ -605,7 +605,8 @@ async function getCwQueryHelpers(
 
   async function cwQueryOperators(
     ownerAddress: string,
-    collectionAddress: string
+    collectionAddress: string,
+    isDisplayed: boolean = false
   ) {
     const queryAllOperatorsMsg: QueryAllOperatorsMsg = {
       all_operators: {
@@ -617,10 +618,14 @@ async function getCwQueryHelpers(
         collectionAddress,
         queryAllOperatorsMsg
       );
-    return logAndReturn(res);
+    return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryApprovals(collectionAddress: string, tokenId: string) {
+  async function cwQueryApprovals(
+    collectionAddress: string,
+    tokenId: string,
+    isDisplayed: boolean = false
+  ) {
     const queryApprovalsMsg: QueryApprovalsMsg = {
       approvals: {
         token_id: tokenId,
@@ -630,10 +635,14 @@ async function getCwQueryHelpers(
       collectionAddress,
       queryApprovalsMsg
     );
-    return logAndReturn(res);
+    return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryBalanceInNft(owner: string, collectionAddress: string) {
+  async function cwQueryBalanceInNft(
+    owner: string,
+    collectionAddress: string,
+    isDisplayed: boolean = false
+  ) {
     const MAX_LIMIT = 100;
     const ITER_LIMIT = 50;
 
@@ -669,10 +678,14 @@ async function getCwQueryHelpers(
     }
 
     const res: TokensResponse = { tokens: tokenList };
-    return logAndReturn(res);
+    return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryNftOwner(collectionAddress: string, tokenId: string) {
+  async function cwQueryNftOwner(
+    collectionAddress: string,
+    tokenId: string,
+    isDisplayed: boolean = false
+  ) {
     const queryOwnerOfMsg: QueryOwnerOf = {
       owner_of: { token_id: tokenId },
     };
@@ -680,51 +693,55 @@ async function getCwQueryHelpers(
       collectionAddress,
       queryOwnerOfMsg
     );
-    return logAndReturn(res);
+    return logAndReturn(res, isDisplayed);
   }
 
   // treasury
 
-  async function cwTreasuryQueryConfig() {
+  async function cwTreasuryQueryConfig(isDisplayed: boolean = false) {
     const res = await treasuryQueryClient.queryConfig();
-    return logAndReturn(res);
+    return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryBalance() {
+  async function cwQueryBalance(isDisplayed: boolean = false) {
     const res = await treasuryQueryClient.queryBalance();
-    return logAndReturn(res);
+    return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryPlatformList() {
+  async function cwQueryPlatformList(isDisplayed: boolean = false) {
     const res = await treasuryQueryClient.queryPlatformList();
-    return logAndReturn(res);
+    return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryRemovedPlatformList() {
+  async function cwQueryRemovedPlatformList(isDisplayed: boolean = false) {
     const res = await treasuryQueryClient.queryRemovedPlatformList();
-    return logAndReturn(res);
+    return logAndReturn(res, isDisplayed);
   }
 
   // platform
 
-  async function cwPlatformQueryConfig() {
+  async function cwPlatformQueryConfig(isDisplayed: boolean = false) {
     const res = await platformQueryClient.queryConfig();
-    return logAndReturn(res);
+    return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryBoxStats() {
+  async function cwQueryBoxStats(isDisplayed: boolean = false) {
     const res = await platformQueryClient.queryBoxStats();
-    return logAndReturn(res);
+    return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryUser(address: string) {
+  async function cwQueryUser(address: string, isDisplayed: boolean = false) {
     const res = await platformQueryClient.queryUser({ address });
-    return logAndReturn(res);
+    return logAndReturn(res, isDisplayed);
   }
 
-  async function cwQueryUserList(limit: number = 10_000, startAfter?: string) {
+  async function cwQueryUserList(
+    limit: number = 10_000,
+    startAfter: string | undefined = undefined,
+    isDisplayed: boolean = false
+  ) {
     const res = await platformQueryClient.queryUserList({ startAfter, limit });
-    return logAndReturn(res);
+    return logAndReturn(res, isDisplayed);
   }
 
   return {
