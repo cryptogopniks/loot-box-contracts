@@ -3,18 +3,30 @@ import { $, toJson } from "./config-utils";
 import * as TreasuryTypes from "../codegen/Treasury.types";
 import * as PlatformTypes from "../codegen/Platform.types";
 
-export type NetworkName = "STARGAZE";
+export type NetworkName = "STARGAZE" | "ARCHWAY";
 
 export type Wasm = "treasury.wasm" | "platform.wasm";
 
 export const ADDRESS = {
-  TESTNET: {
-    ADMIN: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    WORKER: "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+  STARGAZE: {
+    TESTNET: {
+      ADMIN: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+      WORKER: "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+    },
+    MAINNET: {
+      ADMIN: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+      WORKER: "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+    },
   },
-  MAINNET: {
-    ADMIN: "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
-    WORKER: "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+  ARCHWAY: {
+    TESTNET: {
+      ADMIN: "archway1f37v0rdvrred27tlqqcpkrqpzfv6ddr2uj4mr6",
+      WORKER: "archway1hvp3q00ypzrurd46h7c7c3hu86tx9uf83llx6h",
+    },
+    MAINNET: {
+      ADMIN: "archway1f37v0rdvrred27tlqqcpkrqpzfv6ddr2uj4mr6",
+      WORKER: "archway1hvp3q00ypzrurd46h7c7c3hu86tx9uf83llx6h",
+    },
   },
 };
 
@@ -57,7 +69,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               WASM: "treasury.wasm",
               LABEL: "treasury",
               INIT_MSG: toJson<TreasuryTypes.InstantiateMsg>({
-                worker: ADDRESS.TESTNET.WORKER,
+                worker: ADDRESS.STARGAZE.TESTNET.WORKER,
                 platform_code_id: $(
                   "OPTIONS[CHAIN_ID=elgafar-1]|CONTRACTS[WASM=platform.wasm]|CODE"
                 ),
@@ -101,7 +113,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               WASM: "treasury.wasm",
               LABEL: "treasury",
               INIT_MSG: toJson<TreasuryTypes.InstantiateMsg>({
-                worker: ADDRESS.MAINNET.WORKER,
+                worker: ADDRESS.STARGAZE.MAINNET.WORKER,
                 platform_code_id: $(
                   "OPTIONS[CHAIN_ID=stargaze-1]|CONTRACTS[WASM=platform.wasm]|CODE"
                 ),
@@ -115,6 +127,55 @@ export const CHAIN_CONFIG: ChainConfig = {
               CODE: 282,
               ADDRESS:
                 "stars1ev6skugnl2lgsj3ts6y8j4563j7qs4vtlvgqgfcwqum840xzu7tqythx58",
+            },
+          ],
+          IBC: [],
+        },
+      ],
+    },
+
+    {
+      NAME: "archway",
+      PREFIX: "archway",
+      OPTIONS: [
+        {
+          TYPE: "test",
+          DENOM: "aconst",
+          CHAIN_ID: "constantine-3",
+          RPC_LIST: ["https://rpc.constantine.archway.io:443"],
+          GAS_PRICE_AMOUNT: 1500000000000,
+          STORE_CODE_GAS_MULTIPLIER: 22,
+          CONTRACTS: [
+            {
+              WASM: "platform.wasm",
+              LABEL: "platform",
+              INIT_MSG: toJson({}),
+              MIGRATE_MSG: toJson<PlatformTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<PlatformTypes.ExecuteMsg>({
+                update_config: {},
+              }),
+              CODE: 3216,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "treasury.wasm",
+              LABEL: "treasury",
+              INIT_MSG: toJson<TreasuryTypes.InstantiateMsg>({
+                worker: ADDRESS.ARCHWAY.TESTNET.WORKER,
+                platform_code_id: 3216,
+              }),
+              MIGRATE_MSG: toJson<TreasuryTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<TreasuryTypes.ExecuteMsg>({
+                update_config: {},
+              }),
+              CODE: 3217,
+              ADDRESS:
+                "archway15yta6v4k3p4zatcw8nx3hg34wwj495lejhyvswuhwzq90x0s3tasywu0kr",
             },
           ],
           IBC: [],

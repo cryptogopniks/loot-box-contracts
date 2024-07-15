@@ -67,6 +67,43 @@
           "IBC": []
         }
       ]
+    },
+    {
+      "NAME": "archway",
+      "PREFIX": "archway",
+      "OPTIONS": [
+        {
+          "TYPE": "test",
+          "DENOM": "aconst",
+          "CHAIN_ID": "constantine-3",
+          "RPC_LIST": [
+            "https://rpc.constantine.archway.io:443"
+          ],
+          "GAS_PRICE_AMOUNT": 1500000000000,
+          "STORE_CODE_GAS_MULTIPLIER": 22,
+          "CONTRACTS": [
+            {
+              "WASM": "platform.wasm",
+              "LABEL": "platform",
+              "INIT_MSG": "{}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{}}",
+              "CODE": 3216,
+              "ADDRESS": ""
+            },
+            {
+              "WASM": "treasury.wasm",
+              "LABEL": "treasury",
+              "INIT_MSG": "{\"worker\":\"archway1hvp3q00ypzrurd46h7c7c3hu86tx9uf83llx6h\",\"platform_code_id\":3216}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{}}",
+              "CODE": 3217,
+              "ADDRESS": "archway15yta6v4k3p4zatcw8nx3hg34wwj495lejhyvswuhwzq90x0s3tasywu0kr"
+            }
+          ],
+          "IBC": []
+        }
+      ]
     }
   ]
 }

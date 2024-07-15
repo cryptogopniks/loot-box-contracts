@@ -89,22 +89,22 @@ async function main() {
     //   gasPrice
     // );
 
-    // await h.treasury.cwCreatePlatform(
-    //   {
-    //     boxPrice: 10_000_000,
-    //     denom: DENOM,
-    //     distribution: [
-    //       { box_rewards: `${0}`, weight: "0.575" },
-    //       { box_rewards: `${20_000_000}`, weight: "0.425" },
-    //     ],
-    //   },
-    //   gasPrice
-    // );
+    await h.treasury.cwCreatePlatform(
+      {
+        boxPrice: 100,
+        denom: DENOM,
+        distribution: [
+          { box_rewards: `${0}`, weight: "0.55" },
+          { box_rewards: `${200}`, weight: "0.45" },
+        ],
+      },
+      gasPrice
+    );
 
     const platformAddress = getLast(await treasury.cwQueryPlatformList());
     const platformConfig = await (
       await getCwQueryHelpers(chainId, RPC, platformAddress)
-    ).platfrorm.cwQueryConfig();
+    ).platfrorm.cwQueryConfig(true);
 
     // await h.treasury.cwRemovePlatform(platformAddress, gasPrice);
     // await treasury.cwQueryRemovedPlatformList();
