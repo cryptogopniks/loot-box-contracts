@@ -101,10 +101,12 @@ async function main() {
     //   gasPrice
     // );
 
-    const platformAddress = getLast(await treasury.cwQueryPlatformList());
+    await treasury.cwQueryBalance(true);
+    const platformList = await treasury.cwQueryPlatformList(true);
+    const platformAddress = getLast(platformList);
     const platformConfig = await (
       await getCwQueryHelpers(chainId, RPC, platformAddress)
-    ).platfrorm.cwQueryConfig();
+    ).platfrorm.cwQueryConfig(true);
 
     // await h.treasury.cwRemovePlatform(platformAddress, gasPrice);
     // await treasury.cwQueryRemovedPlatformList();
