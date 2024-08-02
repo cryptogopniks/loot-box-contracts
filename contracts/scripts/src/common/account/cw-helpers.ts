@@ -447,6 +447,18 @@ async function getCwExecHelpers(
     );
   }
 
+  async function cwBuyAndOpen(amount: number, denom: string, gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [
+        addSingleTokenToComposerObj(platformMsgComposer.buy(), amount, {
+          native: { denom },
+        }),
+        platformMsgComposer.open(),
+      ],
+      gasPrice
+    );
+  }
+
   /** for tests */
   async function cwOpenMultiple(amount: number, gasPrice: string) {
     const msg = platformMsgComposer.open();
@@ -549,6 +561,7 @@ async function getCwExecHelpers(
     platform: {
       cwBuy,
       cwOpen,
+      cwBuyAndOpen,
       cwClaim,
       cwSend: cwPlatformSend,
       cwAcceptAdminRole: cwPlatformAcceptAdminRole,
