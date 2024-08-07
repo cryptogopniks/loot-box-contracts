@@ -91,7 +91,7 @@ export const CHAIN_CONFIG: ChainConfig = {
           TYPE: "main",
           DENOM: "ustars",
           CHAIN_ID: "stargaze-1",
-          RPC_LIST: ["https://stargaze-rpc.reece.sh:443"],
+          RPC_LIST: ["https://stargaze-rpc.polkachu.com:443"],
           GAS_PRICE_AMOUNT: 1.1,
           STORE_CODE_GAS_MULTIPLIER: 19.5,
           CONTRACTS: [
@@ -176,6 +176,49 @@ export const CHAIN_CONFIG: ChainConfig = {
               CODE: 3217,
               ADDRESS:
                 "archway15yta6v4k3p4zatcw8nx3hg34wwj495lejhyvswuhwzq90x0s3tasywu0kr",
+            },
+          ],
+          IBC: [],
+        },
+
+        {
+          TYPE: "main",
+          DENOM: "aarch",
+          CHAIN_ID: "archway-1",
+          RPC_LIST: ["https://m-archway.rpc.utsa.tech:443"],
+          GAS_PRICE_AMOUNT: 1500000000000,
+          STORE_CODE_GAS_MULTIPLIER: 22,
+          CONTRACTS: [
+            {
+              WASM: "platform.wasm",
+              LABEL: "platform",
+              INIT_MSG: toJson({}),
+              MIGRATE_MSG: toJson<PlatformTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<PlatformTypes.ExecuteMsg>({
+                update_config: {},
+              }),
+              CODE: 582,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "treasury.wasm",
+              LABEL: "treasury",
+              INIT_MSG: toJson<TreasuryTypes.InstantiateMsg>({
+                worker: ADDRESS.ARCHWAY.TESTNET.WORKER,
+                platform_code_id: 582,
+              }),
+              MIGRATE_MSG: toJson<TreasuryTypes.MigrateMsg>({
+                version: "1.0.0",
+              }),
+              UPDATE_MSG: toJson<TreasuryTypes.ExecuteMsg>({
+                update_config: {},
+              }),
+              CODE: 583,
+              ADDRESS:
+                "archway1w2daa5xme2lp4eay3c3r26nlmgeuvarrdggncj5ean37vxhvfkrs72h5dc",
             },
           ],
           IBC: [],
