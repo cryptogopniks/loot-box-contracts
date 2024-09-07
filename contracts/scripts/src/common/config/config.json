@@ -48,19 +48,28 @@
             {
               "WASM": "platform.wasm",
               "LABEL": "platform",
+              "PERMISSION": [
+                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+                "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+                "stars1ev6skugnl2lgsj3ts6y8j4563j7qs4vtlvgqgfcwqum840xzu7tqythx58"
+              ],
               "INIT_MSG": "{}",
-              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "MIGRATE_MSG": "{\"version\":\"1.1.0\"}",
               "UPDATE_MSG": "{\"update_config\":{}}",
-              "CODE": 289,
+              "CODE": 330,
               "ADDRESS": ""
             },
             {
               "WASM": "treasury.wasm",
               "LABEL": "treasury",
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"platform_code_id\":289}",
-              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "PERMISSION": [
+                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+                "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
+              ],
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"platform_code_id\":330}",
+              "MIGRATE_MSG": "{\"version\":\"1.1.0\"}",
               "UPDATE_MSG": "{\"update_config\":{}}",
-              "CODE": 282,
+              "CODE": 329,
               "ADDRESS": "stars1ev6skugnl2lgsj3ts6y8j4563j7qs4vtlvgqgfcwqum840xzu7tqythx58"
             }
           ],

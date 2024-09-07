@@ -1,2 +1,2 @@
 1ed7d721af47d62885eca99a0358b62987cd5bbfac55514162e583e6b3f77147  platform.wasm
-ccd87901e20ce07df5aebb2daa740e29023fc762a92c32c13bdc0209b1157fdc  treasury.wasm
+a0aa8a0fbc01b1a8cfc91a086b45be6525051ccf0d510bd330ded1b1c37a824d  treasury.wasm

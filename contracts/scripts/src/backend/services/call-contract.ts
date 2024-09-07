@@ -42,6 +42,7 @@ async function main() {
       },
     } = getChainOptionById(CHAIN_CONFIG, chainId);
 
+    const TREASURY_CONTRACT = getContractByWasm(CONTRACTS, "treasury.wasm");
     const PLATFORM_CONTRACT = getContractByWasm(CONTRACTS, "platform.wasm");
     const gasPrice = `${GAS_PRICE_AMOUNT}${DENOM}`;
     const testWallets = await getWallets(TYPE);

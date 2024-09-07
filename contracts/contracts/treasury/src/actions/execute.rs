@@ -325,9 +325,15 @@ pub fn try_create_platform(
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
     check_authorization(deps.as_ref(), &sender_address, AuthType::AdminOrWorker)?;
 
+    let Config {
+        admin,
+        platform_code_id,
+        ..
+    } = CONFIG.load(deps.storage)?;
+
     let inst_msg = platform::msg::InstantiateMsg {
         // admin can update worker later
-        worker: Some(CONFIG.load(deps.storage)?.admin.to_string()),
+        worker: Some(admin.to_string()),
         treasury: env.contract.address.to_string(),
         box_price: Some(box_price),
         denom: Some(denom),
@@ -335,11 +341,8 @@ pub fn try_create_platform(
     };
 
     let msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Instantiate {
-        admin: Some(sender_address.to_string()),
-        code_id: unwrap_field(
-            CONFIG.load(deps.storage)?.platform_code_id,
-            "platform_code_id",
-        )?,
+        admin: Some(admin.to_string()),
+        code_id: unwrap_field(platform_code_id, "platform_code_id")?,
         label: "loot-box-platform".to_string(),
         msg: to_json_binary(&inst_msg)?,
         funds: vec![],

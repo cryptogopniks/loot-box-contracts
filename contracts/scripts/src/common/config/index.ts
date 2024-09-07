@@ -98,20 +98,29 @@ export const CHAIN_CONFIG: ChainConfig = {
             {
               WASM: "platform.wasm",
               LABEL: "platform",
+              PERMISSION: [
+                ADDRESS.STARGAZE.MAINNET.ADMIN,
+                ADDRESS.STARGAZE.MAINNET.WORKER,
+                "stars1ev6skugnl2lgsj3ts6y8j4563j7qs4vtlvgqgfcwqum840xzu7tqythx58",
+              ],
               INIT_MSG: toJson({}),
               MIGRATE_MSG: toJson<PlatformTypes.MigrateMsg>({
-                version: "1.0.0",
+                version: "1.1.0",
               }),
               UPDATE_MSG: toJson<PlatformTypes.ExecuteMsg>({
                 update_config: {},
               }),
-              CODE: 289,
+              CODE: 330,
               ADDRESS: "",
             },
 
             {
               WASM: "treasury.wasm",
               LABEL: "treasury",
+              PERMISSION: [
+                ADDRESS.STARGAZE.MAINNET.ADMIN,
+                ADDRESS.STARGAZE.MAINNET.WORKER,
+              ],
               INIT_MSG: toJson<TreasuryTypes.InstantiateMsg>({
                 worker: ADDRESS.STARGAZE.MAINNET.WORKER,
                 platform_code_id: $(
@@ -119,12 +128,12 @@ export const CHAIN_CONFIG: ChainConfig = {
                 ),
               }),
               MIGRATE_MSG: toJson<TreasuryTypes.MigrateMsg>({
-                version: "1.0.0",
+                version: "1.1.0",
               }),
               UPDATE_MSG: toJson<TreasuryTypes.ExecuteMsg>({
                 update_config: {},
               }),
-              CODE: 282,
+              CODE: 329,
               ADDRESS:
                 "stars1ev6skugnl2lgsj3ts6y8j4563j7qs4vtlvgqgfcwqum840xzu7tqythx58",
             },
