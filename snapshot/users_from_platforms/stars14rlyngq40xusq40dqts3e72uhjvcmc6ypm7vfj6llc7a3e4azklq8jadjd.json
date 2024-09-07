@@ -1,0 +1,81 @@
+[
+  {
+    "address": "stars167x86wtm089su58a0sjg4cg4sumhqyktyqu7hh",
+    "info": {
+      "boxes": "0",
+      "rewards": "0",
+      "bought": "1",
+      "opened": [{ "box_rewards": "0", "opened": "1" }],
+      "sent": "0",
+      "received": "0",
+      "opening_date": 1722980169
+    }
+  },
+  {
+    "address": "stars1c7l3lvqp53fdg4ux8yvemsf540s044ne29gwk4",
+    "info": {
+      "boxes": "0",
+      "rewards": "0",
+      "bought": "1",
+      "opened": [{ "box_rewards": "125000000", "opened": "1" }],
+      "sent": "0",
+      "received": "0",
+      "opening_date": 1724923260
+    }
+  },
+  {
+    "address": "stars1cce0ghhk2lpcc89fqewg3kxg30ljqhgz7lfgh7",
+    "info": {
+      "boxes": "0",
+      "rewards": "0",
+      "bought": "5",
+      "opened": [
+        { "box_rewards": "125000000", "opened": "1" },
+        { "box_rewards": "0", "opened": "3" },
+        { "box_rewards": "1000000000", "opened": "1" }
+      ],
+      "sent": "0",
+      "received": "0",
+      "opening_date": 1725001947
+    }
+  },
+  {
+    "address": "stars1dqsmw3sryd4f8ty8sl455ym6usznmdvlryggtz",
+    "info": {
+      "boxes": "0",
+      "rewards": "0",
+      "bought": "1",
+      "opened": [{ "box_rewards": "375000000", "opened": "1" }],
+      "sent": "0",
+      "received": "0",
+      "opening_date": 1724817744
+    }
+  },
+  {
+    "address": "stars1gjej6szndkuaadfsu4u8mhrul6qhyfrqrpdtp8",
+    "info": {
+      "boxes": "0",
+      "rewards": "0",
+      "bought": "3",
+      "opened": [
+        { "box_rewards": "375000000", "opened": "1" },
+        { "box_rewards": "0", "opened": "2" }
+      ],
+      "sent": "0",
+      "received": "0",
+      "opening_date": 1723016175
+    }
+  },
+  {
+    "address": "stars1ulq7fsg6kj0yhnzf744l4amn64qrg7u6danuwq",
+    "info": {
+      "boxes": "0",
+      "rewards": "0",
+      "bought": "1",
+      "opened": [{ "box_rewards": "375000000", "opened": "1" }],
+      "sent": "0",
+      "received": "0",
+      "opening_date": 1722995288
+    }
+  }
+]
