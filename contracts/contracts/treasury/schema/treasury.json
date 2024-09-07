@@ -50,19 +50,23 @@
           "send": {
             "type": "object",
             "required": [
-              "amount",
               "denom",
-              "recipient"
+              "payment",
+              "recipient",
+              "rewards"
             ],
             "properties": {
-              "amount": {
-                "$ref": "#/definitions/Uint128"
-              },
               "denom": {
                 "type": "string"
               },
+              "payment": {
+                "$ref": "#/definitions/Uint128"
+              },
               "recipient": {
                 "type": "string"
+              },
+              "rewards": {
+                "$ref": "#/definitions/Uint128"
               }
             },
             "additionalProperties": false

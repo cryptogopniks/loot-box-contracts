@@ -39,10 +39,11 @@ pub fn execute(
         ExecuteMsg::IncreaseBalance {} => e::try_increase_balance(deps, env, info),
 
         ExecuteMsg::Send {
-            amount,
+            payment,
+            rewards,
             denom,
             recipient,
-        } => e::try_send(deps, env, info, amount, denom, recipient),
+        } => e::try_send(deps, env, info, payment, rewards, denom, recipient),
 
         ExecuteMsg::IncreaseRewards { amount, denom } => {
             e::try_increase_rewards(deps, env, info, amount, denom)

@@ -12,9 +12,10 @@ export type ExecuteMsg = {
   increase_balance: {};
 } | {
   send: {
-    amount: Uint128;
     denom: string;
+    payment: Uint128;
     recipient: string;
+    rewards: Uint128;
   };
 } | {
   increase_rewards: {

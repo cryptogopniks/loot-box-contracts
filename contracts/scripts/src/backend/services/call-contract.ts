@@ -56,7 +56,62 @@ async function main() {
     const { getBalance, getAllBalances } = sgQueryHelpers;
     const { sgMultiSend, sgSend } = sgExecHelpers;
 
-    await treasury.cwQueryConfig();
+    const joe = "archway1fxvjt83z94sny0e9cy23sr43r6whz6c9qczn3d";
+    const gop = "archway1hvp3q00ypzrurd46h7c7c3hu86tx9uf83llx6h";
+    await h.treasury.cwUpdateConfig({ worker: joe }, gasPrice);
+    await treasury.cwQueryConfig(true);
+    return;
+
+    // for (let i = 0; i < 2; i++) {
+    //   await h.treasury.cwCreatePlatform(
+    //     {
+    //       boxPrice: 100,
+    //       denom: DENOM,
+    //       distribution: [
+    //         { box_rewards: `${0}`, weight: "0.54" },
+    //         { box_rewards: `${200}`, weight: "0.46" },
+    //       ],
+    //     },
+    //     gasPrice
+    //   );
+    // }
+    // return;
+
+    await treasury.cwQueryConfig(true);
+    await treasury.cwQueryBalance(true);
+    const platformList = await treasury.cwQueryPlatformList(true);
+    // return;
+
+    for (const platformAddress of platformList) {
+      l(platformAddress);
+      const queryHelpers = await getCwQueryHelpers(
+        chainId,
+        RPC,
+        platformAddress
+      );
+      await queryHelpers.platfrorm.cwQueryConfig(true);
+      await queryHelpers.platfrorm.cwQueryBoxStats(true);
+    }
+    return;
+
+    const platformAddress = platformList[0];
+    const p = await getCwExecHelpers(
+      chainId,
+      RPC,
+      owner,
+      signer,
+      platformAddress
+    );
+    const q = await getCwQueryHelpers(chainId, RPC, platformAddress);
+
+    await p.platform.cwBuyAndOpen(100, DENOM, gasPrice);
+    // await p.platform.cwBuy(100, "aarch", gasPrice);
+    // await p.platform.cwOpen(gasPrice);
+
+    // const gop = "archway1hvp3q00ypzrurd46h7c7c3hu86tx9uf83llx6h";
+    // await q.platfrorm.cwQueryUser(gop, true);
+
+    return;
 
     // await h.treasury.cwCreatePlatform(
     //   {
@@ -101,12 +156,12 @@ async function main() {
       gasPrice
     );
 
-    await treasury.cwQueryBalance(true);
-    const platformList = await treasury.cwQueryPlatformList(true);
-    const platformAddress = getLast(platformList);
-    const platformConfig = await (
-      await getCwQueryHelpers(chainId, RPC, platformAddress)
-    ).platfrorm.cwQueryConfig(true);
+    // await treasury.cwQueryBalance(true);
+    // const platformList = await treasury.cwQueryPlatformList(true);
+    // const platformAddress = getLast(platformList);
+    // const platformConfig = await (
+    //   await getCwQueryHelpers(chainId, RPC, platformAddress)
+    // ).platfrorm.cwQueryConfig(true);
 
     // await h.treasury.cwRemovePlatform(platformAddress, gasPrice);
     // await treasury.cwQueryRemovedPlatformList();

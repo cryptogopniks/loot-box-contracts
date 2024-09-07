@@ -117,19 +117,19 @@
               "WASM": "platform.wasm",
               "LABEL": "platform",
               "INIT_MSG": "{}",
-              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "MIGRATE_MSG": "{\"version\":\"1.1.0\"}",
               "UPDATE_MSG": "{\"update_config\":{}}",
-              "CODE": 582,
+              "CODE": 587,
               "ADDRESS": ""
             },
             {
               "WASM": "treasury.wasm",
               "LABEL": "treasury",
-              "INIT_MSG": "{\"worker\":\"archway1hvp3q00ypzrurd46h7c7c3hu86tx9uf83llx6h\",\"platform_code_id\":582}",
-              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "INIT_MSG": "{\"worker\":\"archway1hvp3q00ypzrurd46h7c7c3hu86tx9uf83llx6h\",\"platform_code_id\":587}",
+              "MIGRATE_MSG": "{\"version\":\"1.1.0\"}",
               "UPDATE_MSG": "{\"update_config\":{}}",
-              "CODE": 583,
-              "ADDRESS": "archway1w2daa5xme2lp4eay3c3r26nlmgeuvarrdggncj5ean37vxhvfkrs72h5dc"
+              "CODE": 588,
+              "ADDRESS": "archway1vumem5fchkltp0t5u22ad3k4qm5ne0fxwhvw798tr2qux9y350cqn8jjf4"
             }
           ],
           "IBC": []

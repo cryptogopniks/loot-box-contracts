@@ -217,7 +217,8 @@ async function getCwExecHelpers(
   }
 
   async function cwTreasurySend(
-    amount: number,
+    payment: number,
+    rewards: number,
     denom: string,
     recipient: string,
     gasPrice: string
@@ -225,7 +226,8 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice(
       [
         treasuryMsgComposer.send({
-          amount: amount.toString(),
+          payment: payment.toString(),
+          rewards: rewards.toString(),
           denom,
           recipient,
         }),
@@ -382,7 +384,8 @@ async function getCwExecHelpers(
           platformCodeId,
         }),
       ],
-      gasPrice
+      gasPrice,
+      1.1
     );
   }
 

@@ -194,12 +194,12 @@ export const CHAIN_CONFIG: ChainConfig = {
               LABEL: "platform",
               INIT_MSG: toJson({}),
               MIGRATE_MSG: toJson<PlatformTypes.MigrateMsg>({
-                version: "1.0.0",
+                version: "1.1.0",
               }),
               UPDATE_MSG: toJson<PlatformTypes.ExecuteMsg>({
                 update_config: {},
               }),
-              CODE: 582,
+              CODE: 587,
               ADDRESS: "",
             },
 
@@ -208,17 +208,19 @@ export const CHAIN_CONFIG: ChainConfig = {
               LABEL: "treasury",
               INIT_MSG: toJson<TreasuryTypes.InstantiateMsg>({
                 worker: ADDRESS.ARCHWAY.TESTNET.WORKER,
-                platform_code_id: 582,
+                platform_code_id: $(
+                  "OPTIONS[CHAIN_ID=archway-1]|CONTRACTS[WASM=platform.wasm]|CODE"
+                ),
               }),
               MIGRATE_MSG: toJson<TreasuryTypes.MigrateMsg>({
-                version: "1.0.0",
+                version: "1.1.0",
               }),
               UPDATE_MSG: toJson<TreasuryTypes.ExecuteMsg>({
                 update_config: {},
               }),
-              CODE: 583,
+              CODE: 588,
               ADDRESS:
-                "archway1w2daa5xme2lp4eay3c3r26nlmgeuvarrdggncj5ean37vxhvfkrs72h5dc",
+                "archway1vumem5fchkltp0t5u22ad3k4qm5ne0fxwhvw798tr2qux9y350cqn8jjf4",
             },
           ],
           IBC: [],

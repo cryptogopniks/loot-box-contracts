@@ -14,13 +14,15 @@ export interface TreasuryMsg {
   sender: string;
   increaseBalance: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
   send: ({
-    amount,
     denom,
-    recipient
+    payment,
+    recipient,
+    rewards
   }: {
-    amount: Uint128;
     denom: string;
+    payment: Uint128;
     recipient: string;
+    rewards: Uint128;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   increaseRewards: ({
     amount,
@@ -130,13 +132,15 @@ export class TreasuryMsgComposer implements TreasuryMsg {
     };
   };
   send = ({
-    amount,
     denom,
-    recipient
+    payment,
+    recipient,
+    rewards
   }: {
-    amount: Uint128;
     denom: string;
+    payment: Uint128;
     recipient: string;
+    rewards: Uint128;
   }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
@@ -145,9 +149,10 @@ export class TreasuryMsgComposer implements TreasuryMsg {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           send: {
-            amount,
             denom,
-            recipient
+            payment,
+            recipient,
+            rewards
           }
         })),
         funds: _funds

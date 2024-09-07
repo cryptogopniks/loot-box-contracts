@@ -83,13 +83,15 @@ pub fn try_send(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    amount: Uint128,
+    payment: Uint128,
+    rewards: Uint128,
     denom: String,
     recipient: String,
 ) -> Result<Response, ContractError> {
     check_lockout(deps.as_ref())?;
     let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
 
+    let mut response = Response::new().add_attribute("action", "try_send");
     let platform_list = PLATFORM_LIST
         .load(deps.storage)?
         .into_iter()
@@ -109,42 +111,63 @@ pub fn try_send(
         },
     )?;
 
-    BALANCE.update(deps.storage, |mut x| -> StdResult<Balance> {
-        x.pool = x
-            .pool
-            .into_iter()
-            .map(|(current_amount, current_denom)| {
-                if current_denom == denom {
-                    return (current_amount - amount, current_denom);
-                }
+    if rewards.is_zero() {
+        BALANCE.update(deps.storage, |mut x| -> StdResult<Balance> {
+            x.pool = x
+                .pool
+                .into_iter()
+                .map(|(current_amount, current_denom)| {
+                    if current_denom == denom {
+                        return (current_amount - payment, current_denom);
+                    }
 
-                (current_amount, current_denom)
-            })
-            .collect();
+                    (current_amount, current_denom)
+                })
+                .collect();
 
-        x.rewards = x
-            .rewards
-            .into_iter()
-            .map(|(current_amount, current_denom)| {
-                if current_denom == denom {
-                    return (current_amount - amount, current_denom);
-                }
+            Ok(x)
+        })?;
 
-                (current_amount, current_denom)
-            })
-            .collect();
+        response = response.add_message(BankMsg::Send {
+            to_address: recipient,
+            amount: coins(payment.u128(), denom),
+        });
+    } else {
+        BALANCE.update(deps.storage, |mut x| -> StdResult<Balance> {
+            x.pool = x
+                .pool
+                .into_iter()
+                .map(|(current_amount, current_denom)| {
+                    if current_denom == denom {
+                        return (current_amount - rewards, current_denom);
+                    }
 
-        Ok(x)
-    })?;
+                    (current_amount, current_denom)
+                })
+                .collect();
 
-    let msg = BankMsg::Send {
-        to_address: recipient,
-        amount: coins(amount.u128(), denom),
-    };
+            x.rewards = x
+                .rewards
+                .into_iter()
+                .map(|(current_amount, current_denom)| {
+                    if current_denom == denom {
+                        return (current_amount - rewards, current_denom);
+                    }
 
-    Ok(Response::new()
-        .add_message(msg)
-        .add_attribute("action", "try_send"))
+                    (current_amount, current_denom)
+                })
+                .collect();
+
+            Ok(x)
+        })?;
+
+        response = response.add_message(BankMsg::Send {
+            to_address: recipient,
+            amount: coins(rewards.u128(), denom),
+        });
+    }
+
+    Ok(response)
 }
 
 pub fn try_increase_rewards(
