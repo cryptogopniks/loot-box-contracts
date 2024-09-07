@@ -77,7 +77,7 @@ async function main() {
       contractConfigAndMigrateMsgList.map((x) => x[1]),
       ""
     );
-    const gasWantedSim = Math.ceil(1.2 * gasSimulated);
+    const gasWantedSim = Math.ceil(1.4 * gasSimulated);
 
     const tx = await signingClient.signAndBroadcast(
       owner,
@@ -86,7 +86,7 @@ async function main() {
     );
     l(tx);
 
-    await writeFile(PATH_TO_CONFIG_JSON, JSON.stringify(configJson), {
+    await writeFile(PATH_TO_CONFIG_JSON, JSON.stringify(configJson, null, 2), {
       encoding: ENCODING,
     });
   } catch (error) {

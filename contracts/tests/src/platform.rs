@@ -7,7 +7,7 @@ use loot_box_base::{
     converters::{str_to_dec, u128_to_dec},
     error::ContractError,
     platform::types::{OpeningInfo, WeightInfo},
-    treasury::types::NftInfo,
+    treasury::types::{Balance, NftInfo},
 };
 
 use crate::helpers::{
@@ -682,6 +682,122 @@ fn update_platfrom_worker() -> StdResult<()> {
     let platform_config = project.platform_query_config(platform_address)?;
     assert_that(&platform_config.admin).is_equal_to(&ProjectAccount::Admin.into());
     assert_that(&platform_config.worker.unwrap()).is_equal_to(&ProjectAccount::Owner.into());
+
+    Ok(())
+}
+
+#[test]
+fn open_multiple_times_then_claim() -> StdResult<()> {
+    const BOX_PRICE: u128 = 100;
+
+    let mut project = Project::new();
+    project.reset_time();
+
+    // create platform
+    let price_and_weight_list = vec![(130, "0.5"), (100, "0.5")];
+
+    project.treasury_try_create_platform(
+        ProjectAccount::Admin,
+        BOX_PRICE,
+        ProjectCoin::Stars,
+        &Some(
+            price_and_weight_list
+                .iter()
+                .map(|(rewards, weight)| WeightInfo {
+                    box_rewards: Uint128::new(rewards.to_owned()),
+                    weight: str_to_dec(weight),
+                })
+                .collect(),
+        ),
+    )?;
+    let platform_address = &project.treasury_query_platform_list()?[0];
+
+    let user_balance_before = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
+
+    // win 130 as rewards
+    project.platform_try_buy(
+        platform_address,
+        ProjectAccount::Alice,
+        BOX_PRICE,
+        ProjectCoin::Stars,
+    )?;
+
+    project.wait(1);
+    let res = project.platform_try_open(platform_address, ProjectAccount::Alice)?;
+    let price = parse_attr(&res, "rewards")
+        .unwrap()
+        .parse::<u128>()
+        .unwrap();
+    assert_that(&price).is_equal_to(130);
+
+    let Balance { pool, rewards, .. } = project.treasury_query_balance()?;
+    let (pool_amount, _) = pool[0];
+    let (rewards_amount, _) = rewards[0];
+    assert_that(&pool_amount.u128()).is_equal_to(100);
+    assert_that(&rewards_amount.u128()).is_equal_to(130);
+
+    let user_balance_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
+    assert_that(&user_balance_after).is_equal_to(user_balance_before - 100);
+
+    // win 100 as coins
+    project.platform_try_buy(
+        platform_address,
+        ProjectAccount::Alice,
+        BOX_PRICE,
+        ProjectCoin::Stars,
+    )?;
+
+    project.wait(2);
+    let res = project.platform_try_open(platform_address, ProjectAccount::Alice)?;
+    let price = parse_attr(&res, "coins").unwrap().parse::<u128>().unwrap();
+    assert_that(&price).is_equal_to(100);
+
+    let Balance { pool, rewards, .. } = project.treasury_query_balance()?;
+    let (pool_amount, _) = pool[0];
+    let (rewards_amount, _) = rewards[0];
+    assert_that(&pool_amount.u128()).is_equal_to(100);
+    assert_that(&rewards_amount.u128()).is_equal_to(130);
+
+    let user_balance_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
+    assert_that(&user_balance_after).is_equal_to(user_balance_before - 100);
+
+    // win 100 as coins
+    project.platform_try_buy(
+        platform_address,
+        ProjectAccount::Alice,
+        BOX_PRICE,
+        ProjectCoin::Stars,
+    )?;
+
+    project.wait(1);
+    let res = project.platform_try_open(platform_address, ProjectAccount::Alice)?;
+    let price = parse_attr(&res, "coins").unwrap().parse::<u128>().unwrap();
+    assert_that(&price).is_equal_to(100);
+
+    let Balance { pool, rewards, .. } = project.treasury_query_balance()?;
+    let (pool_amount, _) = pool[0];
+    let (rewards_amount, _) = rewards[0];
+    assert_that(&pool_amount.u128()).is_equal_to(100);
+    assert_that(&rewards_amount.u128()).is_equal_to(130);
+
+    let user_balance_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
+    assert_that(&user_balance_after).is_equal_to(user_balance_before - 100);
+
+    // add liquidity
+    project.treasury_try_deposit(ProjectAccount::Admin, BOX_PRICE, ProjectCoin::Stars)?;
+
+    // try claim
+    project.platform_try_claim(platform_address, ProjectAccount::Alice)?;
+
+    // // check rewards
+    let Balance { pool, rewards, .. } = project.treasury_query_balance()?;
+    let (pool_amount, _) = pool[0];
+    let (rewards_amount, _) = rewards[0];
+    assert_that(&pool_amount.u128()).is_equal_to(70);
+    assert_that(&rewards_amount.u128()).is_equal_to(0);
+
+    let user_balance_after = project.query_balance(ProjectAccount::Alice, &ProjectCoin::Stars)?;
+    assert_that(&user_balance_after).is_equal_to(user_balance_before + 30);
 
     Ok(())
 }

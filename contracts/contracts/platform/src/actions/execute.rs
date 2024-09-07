@@ -182,7 +182,8 @@ pub fn try_open(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, 
                     let msg = WasmMsg::Execute {
                         contract_addr: treasury.to_string(),
                         msg: to_json_binary(&loot_box_base::treasury::msg::ExecuteMsg::Send {
-                            amount: rewards,
+                            payment: rewards,
+                            rewards: Uint128::zero(),
                             denom,
                             recipient: sender_address.to_string(),
                         })?,
@@ -299,7 +300,8 @@ pub fn try_claim(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response
     let msg = WasmMsg::Execute {
         contract_addr: treasury.to_string(),
         msg: to_json_binary(&loot_box_base::treasury::msg::ExecuteMsg::Send {
-            amount: user.rewards,
+            payment: Uint128::zero(),
+            rewards: user.rewards,
             denom,
             recipient: sender_address.to_string(),
         })?,

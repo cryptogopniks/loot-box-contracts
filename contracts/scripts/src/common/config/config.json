@@ -48,20 +48,97 @@
             {
               "WASM": "platform.wasm",
               "LABEL": "platform",
+              "PERMISSION": [
+                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+                "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
+                "stars1ev6skugnl2lgsj3ts6y8j4563j7qs4vtlvgqgfcwqum840xzu7tqythx58"
+              ],
               "INIT_MSG": "{}",
-              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "MIGRATE_MSG": "{\"version\":\"1.1.0\"}",
               "UPDATE_MSG": "{\"update_config\":{}}",
-              "CODE": 289,
+              "CODE": 330,
               "ADDRESS": ""
             },
             {
               "WASM": "treasury.wasm",
               "LABEL": "treasury",
-              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"platform_code_id\":289}",
+              "PERMISSION": [
+                "stars1f37v0rdvrred27tlqqcpkrqpzfv6ddr2a97zzu",
+                "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3"
+              ],
+              "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"platform_code_id\":330}",
+              "MIGRATE_MSG": "{\"version\":\"1.1.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{}}",
+              "CODE": 329,
+              "ADDRESS": "stars1ev6skugnl2lgsj3ts6y8j4563j7qs4vtlvgqgfcwqum840xzu7tqythx58"
+            }
+          ],
+          "IBC": []
+        }
+      ]
+    },
+    {
+      "NAME": "archway",
+      "PREFIX": "archway",
+      "OPTIONS": [
+        {
+          "TYPE": "test",
+          "DENOM": "aconst",
+          "CHAIN_ID": "constantine-3",
+          "RPC_LIST": [
+            "https://rpc.constantine.archway.io:443"
+          ],
+          "GAS_PRICE_AMOUNT": 1500000000000,
+          "STORE_CODE_GAS_MULTIPLIER": 22,
+          "CONTRACTS": [
+            {
+              "WASM": "platform.wasm",
+              "LABEL": "platform",
+              "INIT_MSG": "{}",
               "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
               "UPDATE_MSG": "{\"update_config\":{}}",
-              "CODE": 282,
-              "ADDRESS": "stars1ev6skugnl2lgsj3ts6y8j4563j7qs4vtlvgqgfcwqum840xzu7tqythx58"
+              "CODE": 3216,
+              "ADDRESS": ""
+            },
+            {
+              "WASM": "treasury.wasm",
+              "LABEL": "treasury",
+              "INIT_MSG": "{\"worker\":\"archway1hvp3q00ypzrurd46h7c7c3hu86tx9uf83llx6h\",\"platform_code_id\":3216}",
+              "MIGRATE_MSG": "{\"version\":\"1.0.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{}}",
+              "CODE": 3217,
+              "ADDRESS": "archway15yta6v4k3p4zatcw8nx3hg34wwj495lejhyvswuhwzq90x0s3tasywu0kr"
+            }
+          ],
+          "IBC": []
+        },
+        {
+          "TYPE": "main",
+          "DENOM": "aarch",
+          "CHAIN_ID": "archway-1",
+          "RPC_LIST": [
+            "https://m-archway.rpc.utsa.tech:443"
+          ],
+          "GAS_PRICE_AMOUNT": 1500000000000,
+          "STORE_CODE_GAS_MULTIPLIER": 22,
+          "CONTRACTS": [
+            {
+              "WASM": "platform.wasm",
+              "LABEL": "platform",
+              "INIT_MSG": "{}",
+              "MIGRATE_MSG": "{\"version\":\"1.1.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{}}",
+              "CODE": 587,
+              "ADDRESS": ""
+            },
+            {
+              "WASM": "treasury.wasm",
+              "LABEL": "treasury",
+              "INIT_MSG": "{\"worker\":\"archway1hvp3q00ypzrurd46h7c7c3hu86tx9uf83llx6h\",\"platform_code_id\":587}",
+              "MIGRATE_MSG": "{\"version\":\"1.1.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{}}",
+              "CODE": 588,
+              "ADDRESS": "archway1vumem5fchkltp0t5u22ad3k4qm5ne0fxwhvw798tr2qux9y350cqn8jjf4"
             }
           ],
           "IBC": []

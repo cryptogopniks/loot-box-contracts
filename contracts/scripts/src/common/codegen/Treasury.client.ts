@@ -51,13 +51,15 @@ export interface TreasuryInterface extends TreasuryReadOnlyInterface {
   sender: string;
   increaseBalance: (fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   send: ({
-    amount,
     denom,
-    recipient
+    payment,
+    recipient,
+    rewards
   }: {
-    amount: Uint128;
     denom: string;
+    payment: Uint128;
     recipient: string;
+    rewards: Uint128;
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   increaseRewards: ({
     amount,
@@ -162,19 +164,22 @@ export class TreasuryClient extends TreasuryQueryClient implements TreasuryInter
     }, fee, memo, _funds);
   };
   send = async ({
-    amount,
     denom,
-    recipient
+    payment,
+    recipient,
+    rewards
   }: {
-    amount: Uint128;
     denom: string;
+    payment: Uint128;
     recipient: string;
+    rewards: Uint128;
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       send: {
-        amount,
         denom,
-        recipient
+        payment,
+        recipient,
+        rewards
       }
     }, fee, memo, _funds);
   };

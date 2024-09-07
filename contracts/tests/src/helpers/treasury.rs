@@ -26,7 +26,8 @@ pub trait TreasuryExtension {
     fn treasury_try_send(
         &mut self,
         sender: &Addr,
-        amount: u128,
+        payment: u128,
+        rewards: u128,
         denom: ProjectCoin,
         recipient: ProjectAccount,
     ) -> StdResult<AppResponse>;
@@ -146,7 +147,8 @@ impl TreasuryExtension for Project {
     fn treasury_try_send(
         &mut self,
         sender: &Addr,
-        amount: u128,
+        payment: u128,
+        rewards: u128,
         denom: ProjectCoin,
         recipient: ProjectAccount,
     ) -> StdResult<AppResponse> {
@@ -155,7 +157,8 @@ impl TreasuryExtension for Project {
                 sender.to_owned(),
                 self.get_treasury_address(),
                 &ExecuteMsg::Send {
-                    amount: Uint128::new(amount),
+                    payment: Uint128::new(payment),
+                    rewards: Uint128::new(rewards),
                     denom: denom.to_string(),
                     recipient: recipient.to_string(),
                 },

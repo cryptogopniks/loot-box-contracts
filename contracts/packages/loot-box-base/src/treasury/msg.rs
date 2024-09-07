@@ -21,7 +21,8 @@ pub enum ExecuteMsg {
     IncreaseBalance {},
 
     Send {
-        amount: Uint128,
+        payment: Uint128,
+        rewards: Uint128,
         denom: String,
         recipient: String,
     },

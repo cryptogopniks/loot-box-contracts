@@ -217,7 +217,8 @@ async function getCwExecHelpers(
   }
 
   async function cwTreasurySend(
-    amount: number,
+    payment: number,
+    rewards: number,
     denom: string,
     recipient: string,
     gasPrice: string
@@ -225,7 +226,8 @@ async function getCwExecHelpers(
     return await _msgWrapperWithGasPrice(
       [
         treasuryMsgComposer.send({
-          amount: amount.toString(),
+          payment: payment.toString(),
+          rewards: rewards.toString(),
           denom,
           recipient,
         }),
@@ -382,7 +384,8 @@ async function getCwExecHelpers(
           platformCodeId,
         }),
       ],
-      gasPrice
+      gasPrice,
+      1.1
     );
   }
 
@@ -443,6 +446,18 @@ async function getCwExecHelpers(
   async function cwOpen(gasPrice: string) {
     return await _msgWrapperWithGasPrice(
       [platformMsgComposer.open()],
+      gasPrice
+    );
+  }
+
+  async function cwBuyAndOpen(amount: number, denom: string, gasPrice: string) {
+    return await _msgWrapperWithGasPrice(
+      [
+        addSingleTokenToComposerObj(platformMsgComposer.buy(), amount, {
+          native: { denom },
+        }),
+        platformMsgComposer.open(),
+      ],
       gasPrice
     );
   }
@@ -549,6 +564,7 @@ async function getCwExecHelpers(
     platform: {
       cwBuy,
       cwOpen,
+      cwBuyAndOpen,
       cwClaim,
       cwSend: cwPlatformSend,
       cwAcceptAdminRole: cwPlatformAcceptAdminRole,
