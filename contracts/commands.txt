@@ -1,0 +1,7 @@
+
+yarn run json
+yarn run store "chihuahua-1|treasury.wasm"
+yarn run inst "chihuahua-1|treasury.wasm"
+yarn run store "chihuahua-1|platform.wasm"
+yarn run config "chihuahua-1|treasury.wasm"
+yarn run call "chihuahua-1|"

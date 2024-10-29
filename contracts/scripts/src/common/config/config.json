@@ -144,6 +144,52 @@
           "IBC": []
         }
       ]
+    },
+    {
+      "NAME": "chihuahua",
+      "PREFIX": "chihuahua",
+      "OPTIONS": [
+        {
+          "TYPE": "main",
+          "DENOM": "uhuahua",
+          "CHAIN_ID": "chihuahua-1",
+          "RPC_LIST": [
+            "https://chihuahua-rpc.polkachu.com:443"
+          ],
+          "GAS_PRICE_AMOUNT": 1.1,
+          "STORE_CODE_GAS_MULTIPLIER": 25.5,
+          "CONTRACTS": [
+            {
+              "WASM": "platform.wasm",
+              "LABEL": "platform",
+              "PERMISSION": [
+                "chihuahua1f37v0rdvrred27tlqqcpkrqpzfv6ddr22vy3g0",
+                "chihuahua1hvp3q00ypzrurd46h7c7c3hu86tx9uf88pwv3z",
+                "chihuahua1j926delgh6qhxaqyqmz0pmjhepsqh6u66c23n59n2ew2uuxye7tswkse3k"
+              ],
+              "INIT_MSG": "{}",
+              "MIGRATE_MSG": "{\"version\":\"1.1.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{}}",
+              "CODE": 629,
+              "ADDRESS": ""
+            },
+            {
+              "WASM": "treasury.wasm",
+              "LABEL": "treasury",
+              "PERMISSION": [
+                "chihuahua1f37v0rdvrred27tlqqcpkrqpzfv6ddr22vy3g0",
+                "chihuahua1hvp3q00ypzrurd46h7c7c3hu86tx9uf88pwv3z"
+              ],
+              "INIT_MSG": "{\"worker\":\"chihuahua1hvp3q00ypzrurd46h7c7c3hu86tx9uf88pwv3z\"}",
+              "MIGRATE_MSG": "{\"version\":\"1.1.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{\"platform_code_id\":629}}",
+              "CODE": 628,
+              "ADDRESS": "chihuahua1j926delgh6qhxaqyqmz0pmjhepsqh6u66c23n59n2ew2uuxye7tswkse3k"
+            }
+          ],
+          "IBC": []
+        }
+      ]
     }
   ]
 }
