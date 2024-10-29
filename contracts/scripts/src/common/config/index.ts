@@ -18,6 +18,7 @@ export const ADDRESS = {
       WORKER: "stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3",
     },
   },
+
   ARCHWAY: {
     TESTNET: {
       ADMIN: "archway1f37v0rdvrred27tlqqcpkrqpzfv6ddr2uj4mr6",
@@ -26,6 +27,17 @@ export const ADDRESS = {
     MAINNET: {
       ADMIN: "archway1f37v0rdvrred27tlqqcpkrqpzfv6ddr2uj4mr6",
       WORKER: "archway1hvp3q00ypzrurd46h7c7c3hu86tx9uf83llx6h",
+    },
+  },
+
+  CHIHUAHUA: {
+    TESTNET: {
+      ADMIN: "chihuahua1f37v0rdvrred27tlqqcpkrqpzfv6ddr22vy3g0",
+      WORKER: "chihuahua1hvp3q00ypzrurd46h7c7c3hu86tx9uf88pwv3z",
+    },
+    MAINNET: {
+      ADMIN: "chihuahua1f37v0rdvrred27tlqqcpkrqpzfv6ddr22vy3g0",
+      WORKER: "chihuahua1hvp3q00ypzrurd46h7c7c3hu86tx9uf88pwv3z",
     },
   },
 };
@@ -230,6 +242,67 @@ export const CHAIN_CONFIG: ChainConfig = {
               CODE: 588,
               ADDRESS:
                 "archway1vumem5fchkltp0t5u22ad3k4qm5ne0fxwhvw798tr2qux9y350cqn8jjf4",
+            },
+          ],
+          IBC: [],
+        },
+      ],
+    },
+
+    {
+      NAME: "chihuahua",
+      PREFIX: "chihuahua",
+      OPTIONS: [
+        {
+          TYPE: "main",
+          DENOM: "uhuahua",
+          CHAIN_ID: "chihuahua-1",
+          RPC_LIST: ["https://chihuahua-rpc.polkachu.com:443"],
+          GAS_PRICE_AMOUNT: 1.1,
+          STORE_CODE_GAS_MULTIPLIER: 25.5,
+          CONTRACTS: [
+            {
+              WASM: "platform.wasm",
+              LABEL: "platform",
+              PERMISSION: [
+                ADDRESS.CHIHUAHUA.MAINNET.ADMIN,
+                ADDRESS.CHIHUAHUA.MAINNET.WORKER,
+                "chihuahua1j926delgh6qhxaqyqmz0pmjhepsqh6u66c23n59n2ew2uuxye7tswkse3k",
+              ],
+              INIT_MSG: toJson({}),
+              MIGRATE_MSG: toJson<PlatformTypes.MigrateMsg>({
+                version: "1.1.0",
+              }),
+              UPDATE_MSG: toJson<PlatformTypes.ExecuteMsg>({
+                update_config: {},
+              }),
+              CODE: 629,
+              ADDRESS: "",
+            },
+
+            {
+              WASM: "treasury.wasm",
+              LABEL: "treasury",
+              PERMISSION: [
+                ADDRESS.CHIHUAHUA.MAINNET.ADMIN,
+                ADDRESS.CHIHUAHUA.MAINNET.WORKER,
+              ],
+              INIT_MSG: toJson<TreasuryTypes.InstantiateMsg>({
+                worker: ADDRESS.CHIHUAHUA.MAINNET.WORKER,
+              }),
+              MIGRATE_MSG: toJson<TreasuryTypes.MigrateMsg>({
+                version: "1.1.0",
+              }),
+              UPDATE_MSG: toJson<TreasuryTypes.ExecuteMsg>({
+                update_config: {
+                  platform_code_id: $(
+                    "OPTIONS[CHAIN_ID=chihuahua-1]|CONTRACTS[WASM=platform.wasm]|CODE"
+                  ),
+                },
+              }),
+              CODE: 628,
+              ADDRESS:
+                "chihuahua1j926delgh6qhxaqyqmz0pmjhepsqh6u66c23n59n2ew2uuxye7tswkse3k",
             },
           ],
           IBC: [],
