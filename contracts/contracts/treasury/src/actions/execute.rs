@@ -814,6 +814,84 @@ pub fn try_withdraw_nft(
     Ok(response)
 }
 
+pub fn try_retract_nft(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    nft_info_list: Vec<NftInfo<String>>,
+) -> Result<Response, ContractError> {
+    check_lockout(deps.as_ref())?;
+    let (sender_address, ..) = check_funds(deps.as_ref(), &info, FundsType::Empty)?;
+
+    let mut response = Response::new().add_attribute("action", "try_retract_nft");
+    let balance = BALANCE.load(deps.storage)?;
+    let Config { worker, .. } = CONFIG.load(deps.storage)?;
+    check_authorization(
+        deps.as_ref(),
+        &sender_address,
+        AuthType::Specified {
+            allowlist: vec![worker],
+        },
+    )?;
+
+    if nft_info_list.is_empty() {
+        Err(ContractError::EmptyCollectionList)?;
+    }
+
+    // check collection addresses
+    let nft_info_list = nft_info_list
+        .into_iter()
+        .map(|x| {
+            Ok(NftInfo {
+                collection: deps.api.addr_validate(&x.collection)?,
+                token_id: x.token_id,
+                price_option: vec![],
+            })
+        })
+        .collect::<StdResult<Vec<NftInfo<Addr>>>>()?;
+
+    // check nft duplication
+    let mut collection_and_token_id_list: Vec<String> = nft_info_list
+        .iter()
+        .map(|x| format!("{}{}", x.collection, x.token_id))
+        .collect();
+
+    collection_and_token_id_list.sort_unstable();
+    collection_and_token_id_list.dedup();
+
+    if collection_and_token_id_list.len() != nft_info_list.len() {
+        Err(ContractError::NftDuplication)?;
+    }
+
+    // check if nfts aren't included in balance.nft_pool
+    if nft_info_list.iter().any(|x| balance.nft_pool.contains(x)) {
+        Err(ContractError::NftCanNotBeRetracted)?;
+    }
+
+    // add transfer msgs
+    for NftInfo {
+        collection,
+        token_id,
+        ..
+    } in &nft_info_list
+    {
+        let cw721_msg = cw721::Cw721ExecuteMsg::TransferNft {
+            recipient: sender_address.to_string(),
+            token_id: token_id.to_string(),
+        };
+
+        let msg = WasmMsg::Execute {
+            contract_addr: collection.to_string(),
+            msg: to_json_binary(&cw721_msg)?,
+            funds: vec![],
+        };
+
+        response = response.add_message(msg);
+    }
+
+    Ok(response)
+}
+
 pub fn try_update_nft_price(
     deps: DepsMut,
     _env: Env,

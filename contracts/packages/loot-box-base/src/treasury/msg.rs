@@ -83,6 +83,11 @@ pub enum ExecuteMsg {
         nft_info_list: Vec<NftInfo<String>>,
     },
 
+    /// to withdraw NFT not included in balance.nft_pool
+    RetractNft {
+        nft_info_list: Vec<NftInfo<String>>,
+    },
+
     UpdateNftPrice {
         nft_info_list: Vec<NftInfo<String>>,
     },

@@ -59,9 +59,56 @@ async function main() {
 
     const joe = "archway1fxvjt83z94sny0e9cy23sr43r6whz6c9qczn3d";
     const gop = "archway1hvp3q00ypzrurd46h7c7c3hu86tx9uf83llx6h";
-    await h.treasury.cwUpdateConfig({ worker: joe }, gasPrice);
-    await treasury.cwQueryConfig(true);
+    // await h.treasury.cwUpdateConfig({ worker: joe }, gasPrice);
+
+    const COLLECTION =
+      "stars1h4lzfpcyr38yj9mysnzqy8360tt3uggmdfukgrutgmck53rn9r9sj2qg9q";
+    const ID_LIST = ["1729", "9832"];
+
+    await h.treasury.cwRetractNft(
+      [
+        {
+          collection: COLLECTION,
+          token_id: ID_LIST[0],
+          price_option: [],
+        },
+        {
+          collection: COLLECTION,
+          token_id: ID_LIST[1],
+          price_option: [],
+        },
+      ],
+      gasPrice
+    );
+
+    // await utils.cwQueryBalanceInNft(owner, COLLECTION, true);
+    const nftList = (await treasury.cwQueryBalance()).nft_pool;
+    const targetCollection = nftList.find((x) => x.collection === COLLECTION);
+    li({ targetCollection });
+
     return;
+
+    // await utils.cwQueryNftOwner(COLLECTION, ID_LIST[0], true);
+    // await utils.cwQueryNftOwner(COLLECTION, ID_LIST[1], true);
+    // await treasury.cwQueryConfig(true);
+    // await treasury.cwQueryPlatformList(true);
+
+    // for (const platformAddress of PLATFORM_LIST) {
+    //   l(platformAddress);
+    //   const queryHelpers = await getCwQueryHelpers(
+    //     chainId,
+    //     RPC,
+    //     platformAddress
+    //   );
+    //   await queryHelpers.platfrorm.cwQueryConfig(true);
+    //   await queryHelpers.platfrorm.cwQueryBoxStats(true);
+    // }
+
+    // await utils.cwQueryBalanceInNft(
+    //   TREASURY_CONTRACT.ADDRESS,
+    //   COLLECTION,
+    //   true
+    // );
 
     // for (let i = 0; i < 2; i++) {
     //   await h.treasury.cwCreatePlatform(
