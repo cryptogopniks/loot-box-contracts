@@ -61,6 +61,9 @@ pub enum ContractError {
     #[error("NFT is not found!")]
     NftIsNotFound,
 
+    #[error("NFT can't be retracted!")]
+    NftCanNotBeRetracted,
+
     #[error("NFT already is added!")]
     NftDuplication,
 

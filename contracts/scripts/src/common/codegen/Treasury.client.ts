@@ -126,6 +126,11 @@ export interface TreasuryInterface extends TreasuryReadOnlyInterface {
   }: {
     nftInfoList: NftInfoForString[];
   }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
+  retractNft: ({
+    nftInfoList
+  }: {
+    nftInfoList: NftInfoForString[];
+  }, fee?: number | StdFee | "auto", memo?: string, _funds?: Coin[]) => Promise<ExecuteResult>;
   updateNftPrice: ({
     nftInfoList
   }: {
@@ -156,6 +161,7 @@ export class TreasuryClient extends TreasuryQueryClient implements TreasuryInter
     this.unlock = this.unlock.bind(this);
     this.withdraw = this.withdraw.bind(this);
     this.withdrawNft = this.withdrawNft.bind(this);
+    this.retractNft = this.retractNft.bind(this);
     this.updateNftPrice = this.updateNftPrice.bind(this);
   }
   increaseBalance = async (fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
@@ -322,6 +328,17 @@ export class TreasuryClient extends TreasuryQueryClient implements TreasuryInter
   }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
     return await this.client.execute(this.sender, this.contractAddress, {
       withdraw_nft: {
+        nft_info_list: nftInfoList
+      }
+    }, fee, memo, _funds);
+  };
+  retractNft = async ({
+    nftInfoList
+  }: {
+    nftInfoList: NftInfoForString[];
+  }, fee: number | StdFee | "auto" = "auto", memo?: string, _funds?: Coin[]): Promise<ExecuteResult> => {
+    return await this.client.execute(this.sender, this.contractAddress, {
+      retract_nft: {
         nft_info_list: nftInfoList
       }
     }, fee, memo, _funds);

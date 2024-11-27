@@ -43,7 +43,7 @@
             "https://stargaze-rpc.polkachu.com:443"
           ],
           "GAS_PRICE_AMOUNT": 1.1,
-          "STORE_CODE_GAS_MULTIPLIER": 19.5,
+          "STORE_CODE_GAS_MULTIPLIER": 22.5,
           "CONTRACTS": [
             {
               "WASM": "platform.wasm",
@@ -69,7 +69,7 @@
               "INIT_MSG": "{\"worker\":\"stars1hvp3q00ypzrurd46h7c7c3hu86tx9uf8sg5lm3\",\"platform_code_id\":330}",
               "MIGRATE_MSG": "{\"version\":\"1.1.0\"}",
               "UPDATE_MSG": "{\"update_config\":{}}",
-              "CODE": 329,
+              "CODE": 469,
               "ADDRESS": "stars1ev6skugnl2lgsj3ts6y8j4563j7qs4vtlvgqgfcwqum840xzu7tqythx58"
             }
           ],

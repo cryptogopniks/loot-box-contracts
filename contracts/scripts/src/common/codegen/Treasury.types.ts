@@ -70,6 +70,10 @@ export type ExecuteMsg = {
     nft_info_list: NftInfoForString[];
   };
 } | {
+  retract_nft: {
+    nft_info_list: NftInfoForString[];
+  };
+} | {
   update_nft_price: {
     nft_info_list: NftInfoForString[];
   };

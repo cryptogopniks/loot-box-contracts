@@ -105,7 +105,7 @@ export const CHAIN_CONFIG: ChainConfig = {
           CHAIN_ID: "stargaze-1",
           RPC_LIST: ["https://stargaze-rpc.polkachu.com:443"],
           GAS_PRICE_AMOUNT: 1.1,
-          STORE_CODE_GAS_MULTIPLIER: 19.5,
+          STORE_CODE_GAS_MULTIPLIER: 22.5,
           CONTRACTS: [
             {
               WASM: "platform.wasm",
@@ -145,7 +145,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               UPDATE_MSG: toJson<TreasuryTypes.ExecuteMsg>({
                 update_config: {},
               }),
-              CODE: 329,
+              CODE: 469,
               ADDRESS:
                 "stars1ev6skugnl2lgsj3ts6y8j4563j7qs4vtlvgqgfcwqum840xzu7tqythx58",
             },

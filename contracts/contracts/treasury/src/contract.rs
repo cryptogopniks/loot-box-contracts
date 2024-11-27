@@ -79,6 +79,10 @@ pub fn execute(
             e::try_withdraw_nft(deps, env, info, nft_info_list)
         }
 
+        ExecuteMsg::RetractNft { nft_info_list } => {
+            e::try_retract_nft(deps, env, info, nft_info_list)
+        }
+
         ExecuteMsg::UpdateNftPrice { nft_info_list } => {
             e::try_update_nft_price(deps, env, info, nft_info_list)
         }

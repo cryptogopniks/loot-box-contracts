@@ -420,6 +420,16 @@ async function getCwExecHelpers(
     );
   }
 
+  async function cwRetractNft(
+    nftInfoList: NftInfoForString[],
+    gasPrice: string
+  ) {
+    return await _msgWrapperWithGasPrice(
+      [treasuryMsgComposer.retractNft({ nftInfoList })],
+      gasPrice
+    );
+  }
+
   async function cwUpdateNftPrice(
     nftInfoList: NftInfoForString[],
     gasPrice: string
@@ -559,6 +569,7 @@ async function getCwExecHelpers(
       cwUnlock: cwTreasuryUnlock,
       cwWithdraw,
       cwWithdrawNft,
+      cwRetractNft,
       cwUpdateNftPrice,
     },
     platform: {

@@ -89,6 +89,11 @@ export interface TreasuryMsg {
   }: {
     nftInfoList: NftInfoForString[];
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  retractNft: ({
+    nftInfoList
+  }: {
+    nftInfoList: NftInfoForString[];
+  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   updateNftPrice: ({
     nftInfoList
   }: {
@@ -116,6 +121,7 @@ export class TreasuryMsgComposer implements TreasuryMsg {
     this.unlock = this.unlock.bind(this);
     this.withdraw = this.withdraw.bind(this);
     this.withdrawNft = this.withdrawNft.bind(this);
+    this.retractNft = this.retractNft.bind(this);
     this.updateNftPrice = this.updateNftPrice.bind(this);
   }
   increaseBalance = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
@@ -399,6 +405,25 @@ export class TreasuryMsgComposer implements TreasuryMsg {
         contract: this.contractAddress,
         msg: toUtf8(JSON.stringify({
           withdraw_nft: {
+            nft_info_list: nftInfoList
+          }
+        })),
+        funds: _funds
+      })
+    };
+  };
+  retractNft = ({
+    nftInfoList
+  }: {
+    nftInfoList: NftInfoForString[];
+  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+    return {
+      typeUrl: "/cosmwasm.wasm.v1.MsgExecuteContract",
+      value: MsgExecuteContract.fromPartial({
+        sender: this.sender,
+        contract: this.contractAddress,
+        msg: toUtf8(JSON.stringify({
+          retract_nft: {
             nft_info_list: nftInfoList
           }
         })),
