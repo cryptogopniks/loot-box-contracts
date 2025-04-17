@@ -190,6 +190,52 @@
           "IBC": []
         }
       ]
+    },
+    {
+      "NAME": "osmosis",
+      "PREFIX": "osmo",
+      "OPTIONS": [
+        {
+          "TYPE": "main",
+          "DENOM": "uosmo",
+          "CHAIN_ID": "osmosis-1",
+          "RPC_LIST": [
+            "rpc.cosmos.directory/osmosis"
+          ],
+          "GAS_PRICE_AMOUNT": 0.025,
+          "STORE_CODE_GAS_MULTIPLIER": 22.5,
+          "CONTRACTS": [
+            {
+              "WASM": "platform.wasm",
+              "LABEL": "platform",
+              "PERMISSION": [
+                "osmo1f37v0rdvrred27tlqqcpkrqpzfv6ddr2pz60ll",
+                "osmo1hvp3q00ypzrurd46h7c7c3hu86tx9uf8v0sjxj",
+                ""
+              ],
+              "INIT_MSG": "{}",
+              "MIGRATE_MSG": "{\"version\":\"1.1.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{}}",
+              "CODE": 0,
+              "ADDRESS": ""
+            },
+            {
+              "WASM": "treasury.wasm",
+              "LABEL": "treasury",
+              "PERMISSION": [
+                "osmo1f37v0rdvrred27tlqqcpkrqpzfv6ddr2pz60ll",
+                "osmo1hvp3q00ypzrurd46h7c7c3hu86tx9uf8v0sjxj"
+              ],
+              "INIT_MSG": "{\"worker\":\"osmo1hvp3q00ypzrurd46h7c7c3hu86tx9uf8v0sjxj\"}",
+              "MIGRATE_MSG": "{\"version\":\"1.1.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{\"platform_code_id\":\"!OPTIONS[CHAIN_ID=osmosis-1]|CONTRACTS[WASM=platform.wasm]|CODE!\"}}",
+              "CODE": 0,
+              "ADDRESS": ""
+            }
+          ],
+          "IBC": []
+        }
+      ]
     }
   ]
 }
