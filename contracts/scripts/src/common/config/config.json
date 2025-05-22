@@ -190,6 +190,92 @@
           "IBC": []
         }
       ]
+    },
+    {
+      "NAME": "osmosis",
+      "PREFIX": "osmo",
+      "OPTIONS": [
+        {
+          "TYPE": "test",
+          "DENOM": "uosmo",
+          "CHAIN_ID": "osmo-test-5",
+          "RPC_LIST": [
+            "https://rpc.testcosmos.directory/osmosistestnet"
+          ],
+          "GAS_PRICE_AMOUNT": 0.025,
+          "STORE_CODE_GAS_MULTIPLIER": 40,
+          "CONTRACTS": [
+            {
+              "WASM": "platform.wasm",
+              "LABEL": "platform",
+              "PERMISSION": [
+                "osmo1f37v0rdvrred27tlqqcpkrqpzfv6ddr2pz60ll",
+                "osmo1l9fyw3nujsxs85km39c4ta53r6t4glx675lruv",
+                "osmo14nfgxhs7nwj6dk0q6g0ctxe46tyw8pfs8nmehya0lenlcrpxcv7qrxsmha"
+              ],
+              "INIT_MSG": "{}",
+              "MIGRATE_MSG": "{\"version\":\"1.1.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{}}",
+              "CODE": 12506,
+              "ADDRESS": ""
+            },
+            {
+              "WASM": "treasury.wasm",
+              "LABEL": "treasury",
+              "PERMISSION": [
+                "osmo1f37v0rdvrred27tlqqcpkrqpzfv6ddr2pz60ll",
+                "osmo1l9fyw3nujsxs85km39c4ta53r6t4glx675lruv"
+              ],
+              "INIT_MSG": "{\"worker\":\"osmo1l9fyw3nujsxs85km39c4ta53r6t4glx675lruv\"}",
+              "MIGRATE_MSG": "{\"version\":\"1.1.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{\"platform_code_id\":12506}}",
+              "CODE": 12505,
+              "ADDRESS": "osmo14nfgxhs7nwj6dk0q6g0ctxe46tyw8pfs8nmehya0lenlcrpxcv7qrxsmha"
+            }
+          ],
+          "IBC": []
+        },
+        {
+          "TYPE": "main",
+          "DENOM": "uosmo",
+          "CHAIN_ID": "osmosis-1",
+          "RPC_LIST": [
+            "rpc.cosmos.directory/osmosis"
+          ],
+          "GAS_PRICE_AMOUNT": 0.025,
+          "STORE_CODE_GAS_MULTIPLIER": 22.5,
+          "CONTRACTS": [
+            {
+              "WASM": "platform.wasm",
+              "LABEL": "platform",
+              "PERMISSION": [
+                "osmo1f37v0rdvrred27tlqqcpkrqpzfv6ddr2pz60ll",
+                "osmo1l9fyw3nujsxs85km39c4ta53r6t4glx675lruv",
+                ""
+              ],
+              "INIT_MSG": "{}",
+              "MIGRATE_MSG": "{\"version\":\"1.1.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{}}",
+              "CODE": 0,
+              "ADDRESS": ""
+            },
+            {
+              "WASM": "treasury.wasm",
+              "LABEL": "treasury",
+              "PERMISSION": [
+                "osmo1f37v0rdvrred27tlqqcpkrqpzfv6ddr2pz60ll",
+                "osmo1l9fyw3nujsxs85km39c4ta53r6t4glx675lruv"
+              ],
+              "INIT_MSG": "{\"worker\":\"osmo1l9fyw3nujsxs85km39c4ta53r6t4glx675lruv\"}",
+              "MIGRATE_MSG": "{\"version\":\"1.1.0\"}",
+              "UPDATE_MSG": "{\"update_config\":{\"platform_code_id\":0}}",
+              "CODE": 0,
+              "ADDRESS": ""
+            }
+          ],
+          "IBC": []
+        }
+      ]
     }
   ]
 }

@@ -40,6 +40,17 @@ export const ADDRESS = {
       WORKER: "chihuahua1hvp3q00ypzrurd46h7c7c3hu86tx9uf88pwv3z",
     },
   },
+
+  OSMOSIS: {
+    TESTNET: {
+      ADMIN: "osmo1f37v0rdvrred27tlqqcpkrqpzfv6ddr2pz60ll",
+      WORKER: "osmo1l9fyw3nujsxs85km39c4ta53r6t4glx675lruv",
+    },
+    MAINNET: {
+      ADMIN: "osmo1f37v0rdvrred27tlqqcpkrqpzfv6ddr2pz60ll",
+      WORKER: "osmo1l9fyw3nujsxs85km39c4ta53r6t4glx675lruv",
+    },
+  },
 };
 
 /**
@@ -303,6 +314,121 @@ export const CHAIN_CONFIG: ChainConfig = {
               CODE: 628,
               ADDRESS:
                 "chihuahua1j926delgh6qhxaqyqmz0pmjhepsqh6u66c23n59n2ew2uuxye7tswkse3k",
+            },
+          ],
+          IBC: [],
+        },
+      ],
+    },
+
+    {
+      NAME: "osmosis",
+      PREFIX: "osmo",
+      OPTIONS: [
+        {
+          TYPE: "test",
+          DENOM: "uosmo",
+          CHAIN_ID: "osmo-test-5",
+          RPC_LIST: ["https://rpc.testcosmos.directory/osmosistestnet"],
+          GAS_PRICE_AMOUNT: 0.025,
+          STORE_CODE_GAS_MULTIPLIER: 40,
+          CONTRACTS: [
+            {
+              WASM: "platform.wasm",
+              LABEL: "platform",
+              PERMISSION: [
+                ADDRESS.OSMOSIS.TESTNET.ADMIN,
+                ADDRESS.OSMOSIS.TESTNET.WORKER,
+                "osmo14nfgxhs7nwj6dk0q6g0ctxe46tyw8pfs8nmehya0lenlcrpxcv7qrxsmha", // TODO: treasury address
+              ],
+              INIT_MSG: toJson({}),
+              MIGRATE_MSG: toJson<PlatformTypes.MigrateMsg>({
+                version: "1.1.0",
+              }),
+              UPDATE_MSG: toJson<PlatformTypes.ExecuteMsg>({
+                update_config: {},
+              }),
+              CODE: 12506,
+              ADDRESS: "", // TODO: don't instantiate manually!
+            },
+
+            {
+              WASM: "treasury.wasm",
+              LABEL: "treasury",
+              PERMISSION: [
+                ADDRESS.OSMOSIS.TESTNET.ADMIN,
+                ADDRESS.OSMOSIS.TESTNET.WORKER,
+              ],
+              INIT_MSG: toJson<TreasuryTypes.InstantiateMsg>({
+                worker: ADDRESS.OSMOSIS.TESTNET.WORKER,
+              }),
+              MIGRATE_MSG: toJson<TreasuryTypes.MigrateMsg>({
+                version: "1.1.0",
+              }),
+              UPDATE_MSG: toJson<TreasuryTypes.ExecuteMsg>({
+                update_config: {
+                  platform_code_id: $(
+                    "OPTIONS[CHAIN_ID=osmo-test-5]|CONTRACTS[WASM=platform.wasm]|CODE"
+                  ),
+                },
+              }),
+              CODE: 12505,
+              ADDRESS:
+                "osmo14nfgxhs7nwj6dk0q6g0ctxe46tyw8pfs8nmehya0lenlcrpxcv7qrxsmha",
+            },
+          ],
+          IBC: [],
+        },
+
+        {
+          TYPE: "main",
+          DENOM: "uosmo",
+          CHAIN_ID: "osmosis-1",
+          RPC_LIST: ["rpc.cosmos.directory/osmosis"],
+          GAS_PRICE_AMOUNT: 0.025,
+          STORE_CODE_GAS_MULTIPLIER: 22.5,
+          CONTRACTS: [
+            {
+              WASM: "platform.wasm",
+              LABEL: "platform",
+              PERMISSION: [
+                ADDRESS.OSMOSIS.MAINNET.ADMIN,
+                ADDRESS.OSMOSIS.MAINNET.WORKER,
+                "", // TODO: treasury address
+              ],
+              INIT_MSG: toJson({}),
+              MIGRATE_MSG: toJson<PlatformTypes.MigrateMsg>({
+                version: "1.1.0",
+              }),
+              UPDATE_MSG: toJson<PlatformTypes.ExecuteMsg>({
+                update_config: {},
+              }),
+              CODE: 0,
+              ADDRESS: "", // TODO: don't instantiate manually!
+            },
+
+            {
+              WASM: "treasury.wasm",
+              LABEL: "treasury",
+              PERMISSION: [
+                ADDRESS.OSMOSIS.MAINNET.ADMIN,
+                ADDRESS.OSMOSIS.MAINNET.WORKER,
+              ],
+              INIT_MSG: toJson<TreasuryTypes.InstantiateMsg>({
+                worker: ADDRESS.OSMOSIS.MAINNET.WORKER,
+              }),
+              MIGRATE_MSG: toJson<TreasuryTypes.MigrateMsg>({
+                version: "1.1.0",
+              }),
+              UPDATE_MSG: toJson<TreasuryTypes.ExecuteMsg>({
+                update_config: {
+                  platform_code_id: $(
+                    "OPTIONS[CHAIN_ID=osmosis-1]|CONTRACTS[WASM=platform.wasm]|CODE"
+                  ),
+                },
+              }),
+              CODE: 0,
+              ADDRESS: "",
             },
           ],
           IBC: [],

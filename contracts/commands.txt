@@ -5,3 +5,20 @@ yarn run inst "chihuahua-1|treasury.wasm"
 yarn run store "chihuahua-1|platform.wasm"
 yarn run config "chihuahua-1|treasury.wasm"
 yarn run call "chihuahua-1|"
+
+yarn run json
+yarn run store "osmo-test-5|treasury.wasm"
+yarn run inst "osmo-test-5|treasury.wasm"
+yarn run store "osmo-test-5|platform.wasm"
+yarn run config "osmo-test-5|treasury.wasm"
+yarn run call "osmo-test-5|"
+
+yarn run json
+yarn run store "osmosis-1|treasury.wasm"
+yarn run inst "osmosis-1|treasury.wasm"
+yarn run store "osmosis-1|platform.wasm"
+yarn run config "osmosis-1|treasury.wasm"
+yarn run call "osmosis-1|"
+
+
+https://testnet.ping.pub/osmosis
