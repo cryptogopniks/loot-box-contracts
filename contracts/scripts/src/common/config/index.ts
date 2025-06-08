@@ -384,9 +384,12 @@ export const CHAIN_CONFIG: ChainConfig = {
           TYPE: "main",
           DENOM: "uosmo",
           CHAIN_ID: "osmosis-1",
-          RPC_LIST: ["rpc.cosmos.directory/osmosis"],
+          RPC_LIST: [
+            "https://rpc.osmosis.zone",
+            "rpc.cosmos.directory/osmosis",
+          ],
           GAS_PRICE_AMOUNT: 0.025,
-          STORE_CODE_GAS_MULTIPLIER: 22.5,
+          STORE_CODE_GAS_MULTIPLIER: 42,
           CONTRACTS: [
             {
               WASM: "platform.wasm",
@@ -394,7 +397,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               PERMISSION: [
                 ADDRESS.OSMOSIS.MAINNET.ADMIN,
                 ADDRESS.OSMOSIS.MAINNET.WORKER,
-                "", // TODO: treasury address
+                "osmo1w4wge5y67sldcskte79xpdf66p20umh9pwwaqch4l9029gmeft4qgj2tcl", // TODO: treasury address
               ],
               INIT_MSG: toJson({}),
               MIGRATE_MSG: toJson<PlatformTypes.MigrateMsg>({
@@ -403,7 +406,7 @@ export const CHAIN_CONFIG: ChainConfig = {
               UPDATE_MSG: toJson<PlatformTypes.ExecuteMsg>({
                 update_config: {},
               }),
-              CODE: 0,
+              CODE: 1633,
               ADDRESS: "", // TODO: don't instantiate manually!
             },
 
@@ -427,8 +430,9 @@ export const CHAIN_CONFIG: ChainConfig = {
                   ),
                 },
               }),
-              CODE: 0,
-              ADDRESS: "",
+              CODE: 1632,
+              ADDRESS:
+                "osmo1w4wge5y67sldcskte79xpdf66p20umh9pwwaqch4l9029gmeft4qgj2tcl",
             },
           ],
           IBC: [],
